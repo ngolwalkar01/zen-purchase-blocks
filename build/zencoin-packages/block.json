@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "zen-purchase-blocks/zencoin-packages",
+  "version": "0.2.0",
+  "title": "Zen Zencoin Packages",
+  "category": "woocommerce",
+  "icon": "tickets-alt",
+  "description": "Display configurable Zencoin package product cards.",
+  "textdomain": "zen-purchase-blocks",
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": ["wide", "full"]
+  },
+  "attributes": {
+    "heading": {
+      "type": "string",
+      "default": "ZENCOINS PACKAGE"
+    },
+    "intro": {
+      "type": "string",
+      "default": ""
+    },
+    "selectedItems": {
+      "type": "array",
+      "default": []
+    },
+    "labels": {
+      "type": "object",
+      "default": {
+        "zencoins": "ZENCOINS:",
+        "usageText": "For all Courses and Fire & Ice",
+        "validityText": "Valid for 3 Months beginning with the date of purchase",
+        "largeValidityText": "Valid for 6 Months beginning with the date of purchase",
+        "button": "Book now"
+      }
+    }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css"
+}

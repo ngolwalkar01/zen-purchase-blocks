@@ -33,6 +33,13 @@ final class ZPB_Zen_Purchase_Blocks {
 				'render_callback' => array( __CLASS__, 'render_membership_plans_block' ),
 			)
 		);
+
+		register_block_type(
+			ZPB_PLUGIN_DIR . 'build/zencoin-packages',
+			array(
+				'render_callback' => array( __CLASS__, 'render_zencoin_packages_block' ),
+			)
+		);
 	}
 
 	/**
@@ -82,6 +89,16 @@ final class ZPB_Zen_Purchase_Blocks {
 				),
 			)
 		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/package-products',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( __CLASS__, 'rest_get_package_products' ),
+				'permission_callback' => array( __CLASS__, 'can_edit_blocks' ),
+			)
+		);
 	}
 
 	/**
@@ -112,10 +129,19 @@ final class ZPB_Zen_Purchase_Blocks {
 	 * @return bool
 	 */
 	private static function dependencies_loaded() {
-		return function_exists( 'WC' )
-			&& function_exists( 'wc_get_product' )
+		return self::woocommerce_loaded()
 			&& function_exists( 'wc_memberships_get_membership_plans' )
 			&& function_exists( 'wc_memberships_get_membership_plan' );
+	}
+
+	/**
+	 * Check whether WooCommerce runtime is available.
+	 *
+	 * @return bool
+	 */
+	private static function woocommerce_loaded() {
+		return function_exists( 'WC' )
+			&& function_exists( 'wc_get_product' );
 	}
 
 	/**
@@ -162,6 +188,15 @@ final class ZPB_Zen_Purchase_Blocks {
 		$plan_ids = self::normalize_plan_ids( array( 'membershipPlanIds' => explode( ',', (string) $request->get_param( 'ids' ) ) ) );
 
 		return rest_ensure_response( self::get_membership_plans_product_options( $plan_ids ) );
+	}
+
+	/**
+	 * REST: get Zencoin package products.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function rest_get_package_products() {
+		return rest_ensure_response( self::get_package_product_options() );
 	}
 
 	/**
@@ -254,6 +289,68 @@ final class ZPB_Zen_Purchase_Blocks {
 				}
 			)
 		);
+	}
+
+	/**
+	 * Build selectable product options for CBB package products.
+	 *
+	 * @return array
+	 */
+	private static function get_package_product_options() {
+		if ( ! self::woocommerce_loaded() ) {
+			return array();
+		}
+
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'product',
+				'post_status'    => array( 'publish', 'private' ),
+				'posts_per_page' => 100,
+				'orderby'        => 'menu_order title',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array(
+						'key'   => '_cbb_zencoin_product_type',
+						'value' => 'package',
+					),
+				),
+			)
+		);
+
+		$options = array();
+
+		foreach ( $query->posts as $product_id ) {
+			$product = wc_get_product( $product_id );
+
+			if ( $product ) {
+				$options[] = self::format_package_option( $product );
+			}
+		}
+
+		return array_values(
+			array_filter(
+				$options,
+				static function ( $option ) {
+					return ! empty( $option['productId'] );
+				}
+			)
+		);
+	}
+
+	/**
+	 * Format a package product for editor and renderer use.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return array
+	 */
+	private static function format_package_option( WC_Product $product ) {
+		$option = self::format_product_option( $product );
+
+		$option['packageSize']  = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_package_size', true );
+		$option['validityDays'] = absint( get_post_meta( $product->get_id(), '_cbb_zencoin_validity_days', true ) );
+
+		return $option;
 	}
 
 	/**
@@ -715,6 +812,207 @@ final class ZPB_Zen_Purchase_Blocks {
 		}
 
 		return $normalized;
+	}
+
+	/**
+	 * Render the Zencoin Packages block.
+	 *
+	 * @param array $attributes Block attributes.
+	 * @return string
+	 */
+	public static function render_zencoin_packages_block( $attributes ) {
+		if ( ! self::woocommerce_loaded() ) {
+			return '<div class="zpb-packages zpb-packages--notice">' . esc_html__( 'WooCommerce is required to show Zencoin packages.', 'zen-purchase-blocks' ) . '</div>';
+		}
+
+		$selected_items = self::normalize_package_items( isset( $attributes['selectedItems'] ) ? $attributes['selectedItems'] : array() );
+
+		if ( empty( $selected_items ) ) {
+			return '';
+		}
+
+		$product_map = array();
+
+		foreach ( self::get_package_product_options() as $option ) {
+			$product_map[ (string) $option['productId'] ] = $option;
+		}
+
+		$items = array();
+
+		foreach ( $selected_items as $item ) {
+			$key = (string) $item['productId'];
+
+			if ( empty( $product_map[ $key ] ) ) {
+				continue;
+			}
+
+			$items[] = array_merge( $product_map[ $key ], $item );
+		}
+
+		if ( empty( $items ) ) {
+			return '';
+		}
+
+		wp_enqueue_style( 'zen-purchase-blocks-zencoin-packages-style' );
+
+		$labels       = wp_parse_args(
+			isset( $attributes['labels'] ) && is_array( $attributes['labels'] ) ? $attributes['labels'] : array(),
+			self::get_default_package_labels()
+		);
+		$wrapper_attr = get_block_wrapper_attributes(
+			array(
+				'class' => 'zpb-packages',
+			)
+		);
+
+		ob_start();
+		?>
+		<section <?php echo $wrapper_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+			<?php if ( ! empty( $attributes['heading'] ) ) : ?>
+				<h2 class="zpb-packages__heading"><?php echo esc_html( $attributes['heading'] ); ?></h2>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $attributes['intro'] ) ) : ?>
+				<p class="zpb-packages__intro"><?php echo wp_kses_post( $attributes['intro'] ); ?></p>
+			<?php endif; ?>
+
+			<div class="zpb-packages__grid">
+				<?php foreach ( $items as $item ) : ?>
+					<?php echo self::render_package_card( $item, $labels ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php endforeach; ?>
+			</div>
+		</section>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render one package card.
+	 *
+	 * @param array $item   Item data.
+	 * @param array $labels Labels.
+	 * @return string
+	 */
+	private static function render_package_card( array $item, array $labels ) {
+		$coins         = ! empty( $item['zencoinOverride'] ) ? $item['zencoinOverride'] : $item['zencoinValueText'];
+		$usage_text    = ! empty( $item['usageText'] ) ? $item['usageText'] : $labels['usageText'];
+		$validity_text = ! empty( $item['validityText'] ) ? $item['validityText'] : self::get_package_validity_text( $item, $labels );
+		$button_label  = ! empty( $item['buttonLabel'] ) ? $item['buttonLabel'] : $labels['button'];
+
+		ob_start();
+		?>
+		<article class="zpb-package-card">
+			<header class="zpb-package-card__header">
+				<span class="zpb-package-card__coins-label"><?php echo esc_html( $labels['zencoins'] ); ?></span>
+				<?php if ( $coins ) : ?>
+					<span class="zpb-package-card__coin"><?php echo esc_html( $coins ); ?></span>
+				<?php endif; ?>
+			</header>
+
+			<div class="zpb-package-card__body">
+				<div class="zpb-package-card__price-row">
+					<span class="zpb-package-card__price"><?php echo wp_kses_post( $item['priceHtml'] ); ?></span>
+					<?php if ( ! empty( $item['perZencoinText'] ) ) : ?>
+						<span class="zpb-package-card__rate"><?php echo esc_html( $item['perZencoinText'] ); ?></span>
+					<?php endif; ?>
+				</div>
+
+				<?php if ( $usage_text ) : ?>
+					<div class="zpb-package-card__usage">
+						<span class="zpb-package-card__check" aria-hidden="true"></span>
+						<span><?php echo esc_html( $usage_text ); ?></span>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $validity_text ) : ?>
+					<p class="zpb-package-card__validity"><?php echo esc_html( $validity_text ); ?></p>
+				<?php endif; ?>
+
+				<a class="zpb-package-card__button" href="<?php echo esc_url( ! empty( $item['purchasable'] ) ? $item['addToCartUrl'] : $item['permalink'] ); ?>">
+					<?php echo esc_html( $button_label ); ?>
+				</a>
+			</div>
+		</article>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Normalize selected package items.
+	 *
+	 * @param mixed $items Raw items.
+	 * @return array
+	 */
+	private static function normalize_package_items( $items ) {
+		if ( ! is_array( $items ) ) {
+			return array();
+		}
+
+		$normalized = array();
+
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$product_id = isset( $item['productId'] ) ? absint( $item['productId'] ) : 0;
+
+			if ( ! $product_id ) {
+				continue;
+			}
+
+			$normalized[] = array(
+				'productId'       => $product_id,
+				'zencoinOverride' => isset( $item['zencoinOverride'] ) ? sanitize_text_field( $item['zencoinOverride'] ) : '',
+				'usageText'       => isset( $item['usageText'] ) ? sanitize_text_field( $item['usageText'] ) : '',
+				'validityText'    => isset( $item['validityText'] ) ? sanitize_text_field( $item['validityText'] ) : '',
+				'buttonLabel'     => isset( $item['buttonLabel'] ) ? sanitize_text_field( $item['buttonLabel'] ) : '',
+			);
+		}
+
+		return $normalized;
+	}
+
+	/**
+	 * Build fallback package validity copy.
+	 *
+	 * @param array $item   Item data.
+	 * @param array $labels Labels.
+	 * @return string
+	 */
+	private static function get_package_validity_text( array $item, array $labels ) {
+		if ( ! empty( $item['validityDays'] ) ) {
+			$months = (int) round( (int) $item['validityDays'] / 30 );
+
+			if ( $months > 0 ) {
+				return sprintf(
+					/* translators: %s: number of months */
+					__( 'Valid for %s Months beginning with the date of purchase', 'zen-purchase-blocks' ),
+					$months
+				);
+			}
+		}
+
+		if ( ! empty( $item['packageSize'] ) && 'large' === $item['packageSize'] ) {
+			return $labels['largeValidityText'];
+		}
+
+		return $labels['validityText'];
+	}
+
+	/**
+	 * Default package labels.
+	 *
+	 * @return array
+	 */
+	private static function get_default_package_labels() {
+		return array(
+			'zencoins'          => __( 'ZENCOINS:', 'zen-purchase-blocks' ),
+			'usageText'         => __( 'For all Courses and Fire & Ice', 'zen-purchase-blocks' ),
+			'validityText'      => __( 'Valid for 3 Months beginning with the date of purchase', 'zen-purchase-blocks' ),
+			'largeValidityText' => __( 'Valid for 6 Months beginning with the date of purchase', 'zen-purchase-blocks' ),
+			'button'            => __( 'Book now', 'zen-purchase-blocks' ),
+		);
 	}
 
 	/**

@@ -13,6 +13,12 @@ Dynamic Gutenberg blocks for Zenctuary purchase offers.
 - Formats card prices without subscription period text and hides trailing zero decimals.
 - Pulls price, billing period, Zencoin grant amount, and add-to-cart URL from WooCommerce at render time.
 
+- `Zen Zencoin Packages`
+- Lists WooCommerce products where CBB Zencoin product type is `package`.
+- Lets the editor choose which package products to show.
+- Pulls price, Zencoin amount, price per Zencoin, validity days, and add-to-cart URL from WooCommerce/CBB meta.
+- Supports per-card overrides for displayed Zencoins, usage text, validity text, and button label.
+
 ## Dependencies
 
 - WooCommerce
@@ -27,3 +33,9 @@ Dynamic Gutenberg blocks for Zenctuary purchase offers.
 3. Select one or more membership plans.
 4. Enable the assigned products or variations to display.
 5. Set each enabled item to Monthly or Yearly and add benefits/marketing copy.
+
+For packages:
+
+1. Add the **Zen Zencoin Packages** block.
+2. Enable the package products to display.
+3. Optionally override Zencoin display, usage text, validity text, or button label per card.
