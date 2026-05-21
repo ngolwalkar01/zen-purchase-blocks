@@ -1,0 +1,351 @@
+.zpb-membership-plans {
+	--zpb-gold: #d8b354;
+	--zpb-dark: #3f3d3d;
+	--zpb-cream: #f4f0e6;
+	box-sizing: border-box;
+	color: var(--zpb-dark);
+	font-family: inherit;
+	padding: 32px 20px;
+	width: 100%;
+}
+
+.zpb-membership-plans *,
+.zpb-membership-plans *::before,
+.zpb-membership-plans *::after {
+	box-sizing: border-box;
+}
+
+.zpb-membership-plans__heading,
+.zpb-membership-plans__intro {
+	color: inherit;
+	margin-left: auto;
+	margin-right: auto;
+	max-width: 820px;
+	text-align: center;
+}
+
+.zpb-membership-plans__heading {
+	margin-bottom: 14px;
+}
+
+.zpb-membership-plans__intro {
+	margin-bottom: 28px;
+}
+
+.zpb-membership-plans__tabs {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	justify-content: center;
+	margin: 0 0 52px;
+}
+
+.zpb-membership-plans__tab {
+	background: transparent;
+	border: 2px solid rgba(255, 255, 255, 0.55);
+	border-radius: 999px;
+	color: #fff;
+	cursor: pointer;
+	font: inherit;
+	font-weight: 700;
+	min-width: 118px;
+	padding: 14px 24px;
+	transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.zpb-membership-plans__tab.is-active {
+	background: var(--zpb-gold);
+	border-color: var(--zpb-gold);
+	color: var(--zpb-dark);
+}
+
+.zpb-membership-plans__panel {
+	display: none;
+}
+
+.zpb-membership-plans__panel.is-active {
+	display: block;
+}
+
+.zpb-membership-plans__grid {
+	align-items: stretch;
+	display: grid;
+	gap: 48px;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 496px));
+	justify-content: center;
+	margin: 0 auto;
+	max-width: 1120px;
+}
+
+.zpb-membership-card {
+	background: var(--zpb-cream);
+	border: 2px solid var(--zpb-gold);
+	border-radius: 32px;
+	color: var(--zpb-dark);
+	display: flex;
+	flex-direction: column;
+	min-height: 690px;
+	overflow: visible;
+	position: relative;
+}
+
+.zpb-membership-card.is-featured {
+	background: var(--zpb-gold);
+}
+
+.zpb-membership-card__badge {
+	background: var(--zpb-gold);
+	border: 2px solid #fff;
+	border-radius: 999px;
+	color: var(--zpb-dark);
+	font-size: 16px;
+	left: 50%;
+	min-width: 210px;
+	padding: 10px 22px;
+	position: absolute;
+	text-align: center;
+	top: -76px;
+	transform: translateX(-50%);
+	z-index: 2;
+}
+
+.zpb-membership-card__badge::after {
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+	border-top: 12px solid var(--zpb-gold);
+	bottom: -11px;
+	content: "";
+	left: 50%;
+	position: absolute;
+	transform: translateX(-50%);
+}
+
+.zpb-membership-card__header {
+	align-items: center;
+	background: var(--zpb-dark);
+	border-radius: 29px 29px 0 0;
+	color: var(--zpb-gold);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-height: 154px;
+	padding: 24px 20px;
+	text-align: center;
+}
+
+.zpb-membership-card__brand {
+	font-size: clamp(34px, 5vw, 54px);
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	line-height: 0.92;
+}
+
+.zpb-membership-card__title,
+.zpb-membership-card__subtitle {
+	color: inherit;
+	margin: 0;
+	text-transform: uppercase;
+}
+
+.zpb-membership-card__title {
+	font-size: 25px;
+	font-style: italic;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	line-height: 1.1;
+}
+
+.zpb-membership-card__subtitle {
+	font-size: 22px;
+	font-style: italic;
+	letter-spacing: 0.08em;
+}
+
+.zpb-membership-card__body {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	padding: 42px 42px 34px;
+}
+
+.zpb-membership-card__price {
+	align-items: baseline;
+	display: flex;
+	justify-content: center;
+	margin-bottom: 26px;
+}
+
+.zpb-membership-card__amount {
+	font-size: clamp(56px, 8vw, 76px);
+	font-weight: 900;
+	letter-spacing: -0.04em;
+	line-height: 0.95;
+}
+
+.zpb-membership-card__amount .woocommerce-Price-amount {
+	color: inherit;
+}
+
+.zpb-membership-card__period {
+	font-size: 25px;
+	margin-left: 8px;
+}
+
+.zpb-membership-card__coins {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	justify-content: center;
+	margin-bottom: 34px;
+}
+
+.zpb-membership-card__coins-label {
+	font-size: 24px;
+	font-weight: 800;
+}
+
+.zpb-membership-card__coin {
+	align-items: center;
+	background: var(--zpb-gold);
+	border: 3px solid var(--zpb-dark);
+	border-radius: 50%;
+	display: inline-flex;
+	font-size: 25px;
+	font-weight: 800;
+	height: 56px;
+	justify-content: center;
+	line-height: 1;
+	width: 56px;
+}
+
+.zpb-membership-card.is-featured .zpb-membership-card__coin {
+	background: #fff;
+}
+
+.zpb-membership-card__coin-rate {
+	color: rgba(63, 61, 61, 0.58);
+	font-size: 17px;
+}
+
+.zpb-membership-card__benefits {
+	display: flex;
+	flex-direction: column;
+	gap: 19px;
+	list-style: none;
+	margin: 0 0 40px;
+	padding: 0;
+}
+
+.zpb-membership-card__benefits li {
+	font-size: 21px;
+	font-weight: 800;
+	line-height: 1.28;
+	padding-left: 50px;
+	position: relative;
+}
+
+.zpb-membership-card__benefits li::before {
+	align-items: center;
+	background: var(--zpb-dark);
+	border-radius: 50%;
+	color: var(--zpb-gold);
+	content: "\2713";
+	display: inline-flex;
+	font-size: 21px;
+	font-weight: 900;
+	height: 32px;
+	justify-content: center;
+	left: 0;
+	line-height: 1;
+	position: absolute;
+	top: -1px;
+	width: 32px;
+}
+
+.zpb-membership-card__button {
+	align-items: center;
+	background: var(--zpb-dark);
+	border: 2px solid var(--zpb-gold);
+	border-radius: 999px;
+	color: var(--zpb-gold);
+	display: inline-flex;
+	font-size: 18px;
+	font-weight: 800;
+	justify-content: center;
+	margin: auto 0 30px;
+	min-height: 70px;
+	padding: 16px 24px;
+	text-decoration: none;
+}
+
+.zpb-membership-card__button:hover,
+.zpb-membership-card__button:focus {
+	color: #fff;
+	text-decoration: none;
+}
+
+.zpb-membership-card__more {
+	border-top: 3px solid var(--zpb-dark);
+	padding-top: 26px;
+}
+
+.zpb-membership-card__more summary {
+	cursor: pointer;
+	font-size: 20px;
+	font-weight: 800;
+	list-style: none;
+	position: relative;
+}
+
+.zpb-membership-card__more summary::-webkit-details-marker {
+	display: none;
+}
+
+.zpb-membership-card__more summary::after {
+	content: "+";
+	font-size: 42px;
+	font-weight: 300;
+	line-height: 1;
+	position: absolute;
+	right: 0;
+	top: -12px;
+}
+
+.zpb-membership-card__more[open] summary::after {
+	content: "\2212";
+}
+
+.zpb-membership-card__more div {
+	margin-top: 16px;
+}
+
+@media (max-width: 720px) {
+	.zpb-membership-plans {
+		padding-left: 14px;
+		padding-right: 14px;
+	}
+
+	.zpb-membership-plans__grid {
+		gap: 34px;
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.zpb-membership-card {
+		border-radius: 24px;
+		min-height: 0;
+	}
+
+	.zpb-membership-card__header {
+		border-radius: 21px 21px 0 0;
+	}
+
+	.zpb-membership-card__body {
+		padding: 32px 24px 28px;
+	}
+
+	.zpb-membership-card__benefits li {
+		font-size: 18px;
+	}
+}

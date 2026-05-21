@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "zen-purchase-blocks/membership-plans",
+  "version": "0.1.0",
+  "title": "Zen Membership Plans",
+  "category": "woocommerce",
+  "icon": "groups",
+  "description": "Display configurable WooCommerce Membership subscription cards with monthly and yearly tabs.",
+  "textdomain": "zen-purchase-blocks",
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": ["wide", "full"]
+  },
+  "attributes": {
+    "membershipPlanId": {
+      "type": "number",
+      "default": 0
+    },
+    "heading": {
+      "type": "string",
+      "default": ""
+    },
+    "intro": {
+      "type": "string",
+      "default": ""
+    },
+    "selectedItems": {
+      "type": "array",
+      "default": []
+    },
+    "labels": {
+      "type": "object",
+      "default": {
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "button": "Become Member",
+        "zencoins": "ZENCOINS:",
+        "moreInfo": "more information"
+      }
+    }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css",
+  "viewScript": "file:./view.js"
+}
