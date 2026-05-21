@@ -7,8 +7,11 @@
 	box-sizing: border-box;
 	color: var(--zpb-text);
 	font-family: inherit;
-	padding: 80px 24px;
-	width: 100%;
+	margin-left: calc(50% - 50vw);
+	margin-right: calc(50% - 50vw);
+	max-width: none;
+	padding: 88px 120px 14px;
+	width: 100vw;
 }
 
 .zpb-packages *,
@@ -19,18 +22,18 @@
 
 .zpb-packages__heading {
 	color: var(--zpb-gold);
-	font-size: clamp(36px, 5vw, 60px);
+	font-size: 56px;
 	font-weight: 800;
 	letter-spacing: 0.06em;
 	line-height: 1.05;
-	margin: 0 auto 42px;
+	margin: 0 auto 38px;
 	text-align: center;
 	text-transform: uppercase;
 }
 
 .zpb-packages__intro {
 	color: var(--zpb-text);
-	font-size: clamp(18px, 2vw, 29px);
+	font-size: 29px;
 	line-height: 1.45;
 	margin: 0 auto 78px;
 	max-width: 1260px;
@@ -40,10 +43,10 @@
 .zpb-packages__grid {
 	display: grid;
 	gap: 54px;
-	grid-template-columns: repeat(auto-fit, minmax(290px, 570px));
+	grid-template-columns: repeat(3, minmax(0, 568px));
 	justify-content: center;
 	margin: 0 auto;
-	max-width: 1810px;
+	max-width: 1812px;
 }
 
 .zpb-package-card {
@@ -52,7 +55,7 @@
 	color: var(--zpb-text);
 	display: flex;
 	flex-direction: column;
-	min-height: 610px;
+	min-height: 612px;
 	overflow: hidden;
 }
 
@@ -63,7 +66,7 @@
 	gap: 16px;
 	justify-content: center;
 	min-height: 140px;
-	padding: 28px 20px;
+	padding: 26px 20px;
 }
 
 .zpb-package-card__coins-label {
@@ -91,7 +94,7 @@
 	display: flex;
 	flex: 1;
 	flex-direction: column;
-	padding: 54px 50px 38px;
+	padding: 52px 50px 38px;
 }
 
 .zpb-package-card__price-row {
@@ -104,7 +107,7 @@
 
 .zpb-package-card__price {
 	color: var(--zpb-text);
-	font-size: clamp(62px, 8vw, 88px);
+	font-size: 86px;
 	font-weight: 900;
 	letter-spacing: -0.06em;
 	line-height: 0.95;
@@ -179,6 +182,17 @@
 	text-decoration: none;
 }
 
+@media (max-width: 1500px) {
+	.zpb-packages {
+		padding-left: 48px;
+		padding-right: 48px;
+	}
+
+	.zpb-packages__grid {
+		grid-template-columns: repeat(auto-fit, minmax(290px, 568px));
+	}
+}
+
 @media (max-width: 760px) {
 	.zpb-packages {
 		padding: 54px 16px;
@@ -192,6 +206,19 @@
 	.zpb-package-card {
 		border-radius: 28px;
 		min-height: 0;
+	}
+
+	.zpb-packages__heading {
+		font-size: 36px;
+	}
+
+	.zpb-packages__intro {
+		font-size: 18px;
+		margin-bottom: 42px;
+	}
+
+	.zpb-package-card__price {
+		font-size: 62px;
 	}
 
 	.zpb-package-card__body {
