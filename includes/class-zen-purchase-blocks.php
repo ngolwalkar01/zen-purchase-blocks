@@ -439,6 +439,7 @@ final class ZPB_Zen_Purchase_Blocks {
 		$option['productType']  = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_product_type', true );
 		$option['validityDays'] = absint( get_post_meta( $product->get_id(), '_cbb_zencoin_validity_days', true ) );
 		$option['imageUrl']     = get_the_post_thumbnail_url( $product->get_id(), 'large' );
+		$option['isFree']       = (float) wc_get_price_to_display( $product ) <= 0;
 
 		return $option;
 	}
@@ -1192,6 +1193,10 @@ final class ZPB_Zen_Purchase_Blocks {
 		$button_label  = ! empty( $item['buttonLabel'] ) ? $item['buttonLabel'] : $labels['button'];
 		$image_url     = ! empty( $item['imageUrlOverride'] ) ? $item['imageUrlOverride'] : $item['imageUrl'];
 		$price_html    = ! empty( $item['priceOverride'] ) ? esc_html( $item['priceOverride'] ) : $item['priceHtml'];
+
+		if ( empty( $item['priceOverride'] ) && ! empty( $item['isFree'] ) ) {
+			$price_html = esc_html__( 'FREE', 'zen-purchase-blocks' );
+		}
 
 		ob_start();
 		?>

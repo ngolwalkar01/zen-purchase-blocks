@@ -9,7 +9,7 @@
 	margin-left: calc(50% - 50vw);
 	margin-right: calc(50% - 50vw);
 	max-width: none;
-	padding: 128px 120px 68px;
+	padding: 6px 120px 8px;
 	width: 100vw;
 }
 
@@ -21,31 +21,31 @@
 
 .zpb-dropins__heading {
 	color: var(--zpb-gold);
-	font-size: 78px;
+	font-size: 60px;
 	font-weight: 900;
 	letter-spacing: 0.03em;
 	line-height: 1;
-	margin: 0 auto 52px;
+	margin: 0 auto 46px;
 	text-align: center;
 	text-transform: uppercase;
 }
 
 .zpb-dropins__intro {
 	color: var(--zpb-cream);
-	font-size: 34px;
+	font-size: 30px;
 	line-height: 1.42;
-	margin: 0 auto 90px;
-	max-width: 1520px;
+	margin: 0 auto 78px;
+	max-width: 1260px;
 	text-align: center;
 }
 
 .zpb-dropins__grid {
-	display: grid;
+	display: flex;
+	flex-wrap: wrap;
 	gap: 68px;
-	grid-template-columns: repeat(2, minmax(0, 690px));
 	justify-content: center;
 	margin: 0 auto;
-	max-width: 1448px;
+	max-width: 1250px;
 }
 
 .zpb-dropin-card {
@@ -54,15 +54,18 @@
 	border-radius: 42px;
 	color: var(--zpb-dark);
 	display: flex;
+	flex: 0 0 592px;
 	flex-direction: column;
-	min-height: 810px;
+	min-height: 695px;
+	max-width: 100%;
 	overflow: hidden;
+	width: 592px;
 }
 
 .zpb-dropin-card__media {
 	align-items: center;
 	display: flex;
-	height: 170px;
+	height: 145px;
 	justify-content: center;
 	overflow: hidden;
 	position: relative;
@@ -94,7 +97,7 @@
 
 .zpb-dropin-card__coins-label {
 	color: var(--zpb-gold);
-	font-size: 32px;
+	font-size: 28px;
 	font-weight: 900;
 }
 
@@ -106,27 +109,27 @@
 	box-shadow: 0 0 0 4px var(--zpb-gold);
 	color: var(--zpb-dark);
 	display: inline-flex;
-	font-size: 32px;
+	font-size: 28px;
 	font-weight: 900;
-	height: 66px;
+	height: 58px;
 	justify-content: center;
-	width: 66px;
+	width: 58px;
 }
 
 .zpb-dropin-card__body {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
-	padding: 60px 60px 48px;
+	padding: 56px 52px 42px;
 }
 
 .zpb-dropin-card__price {
 	color: var(--zpb-dark);
-	font-size: 104px;
+	font-size: 92px;
 	font-weight: 900;
 	letter-spacing: -0.04em;
 	line-height: 0.95;
-	margin-bottom: 64px;
+	margin-bottom: 56px;
 	text-align: center;
 	text-transform: uppercase;
 }
@@ -139,10 +142,10 @@
 	align-items: center;
 	display: flex;
 	gap: 24px;
-	font-size: 30px;
+	font-size: 26px;
 	font-weight: 900;
 	line-height: 1.25;
-	margin-bottom: 36px;
+	margin-bottom: 30px;
 }
 
 .zpb-dropin-card__check {
@@ -167,13 +170,13 @@
 .zpb-dropin-card__validity,
 .zpb-dropin-card__note {
 	color: var(--zpb-dark);
-	font-size: 27px;
+	font-size: 23px;
 	line-height: 1.4;
 	margin: 0;
 }
 
 .zpb-dropin-card__validity {
-	margin-bottom: 32px;
+	margin-bottom: 30px;
 	max-width: 560px;
 }
 
@@ -188,11 +191,11 @@
 	border-radius: 999px;
 	color: var(--zpb-gold);
 	display: inline-flex;
-	font-size: 30px;
+	font-size: 25px;
 	font-weight: 900;
 	justify-content: center;
 	margin-top: auto;
-	min-height: 98px;
+	min-height: 84px;
 	padding: 20px 32px;
 	text-decoration: none;
 	width: 100%;
@@ -212,7 +215,7 @@
 	}
 
 	.zpb-dropins__grid {
-		grid-template-columns: repeat(auto-fit, minmax(320px, 690px));
+		gap: 42px;
 	}
 }
 
@@ -223,12 +226,13 @@
 
 	.zpb-dropins__grid {
 		gap: 32px;
-		grid-template-columns: minmax(0, 1fr);
 	}
 
 	.zpb-dropin-card {
 		border-radius: 28px;
+		flex-basis: 100%;
 		min-height: 0;
+		width: 100%;
 	}
 
 	.zpb-dropins__heading {
