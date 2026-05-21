@@ -277,6 +277,8 @@ final class ZPB_Zen_Purchase_Blocks {
 			'name'             => html_entity_decode( wp_strip_all_tags( $name ), ENT_QUOTES, get_bloginfo( 'charset' ) ),
 			'priceHtml'        => wp_kses_post( $product->get_price_html() ),
 			'priceText'        => html_entity_decode( wp_strip_all_tags( $product->get_price_html() ), ENT_QUOTES, get_bloginfo( 'charset' ) ),
+			'monthlyEquivalentHtml' => self::get_monthly_equivalent_price_html( $product ),
+			'monthlyEquivalentText' => self::get_monthly_equivalent_price_text( $product ),
 			'billingPeriod'    => self::get_subscription_period_label( $product ),
 			'zencoins'         => $coins,
 			'zencoinValueText' => $coins > 0 ? wc_format_decimal( $coins, 0 ) : '',
@@ -350,6 +352,32 @@ final class ZPB_Zen_Purchase_Blocks {
 		}
 
 		return $label ? '/' . $label : '';
+	}
+
+	/**
+	 * Calculate display-only monthly equivalent price HTML for annual products.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private static function get_monthly_equivalent_price_html( WC_Product $product ) {
+		$price = (float) wc_get_price_to_display( $product );
+
+		if ( $price <= 0 ) {
+			return '';
+		}
+
+		return wp_kses_post( wc_price( $price / 12 ) );
+	}
+
+	/**
+	 * Calculate display-only monthly equivalent price text for annual products.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private static function get_monthly_equivalent_price_text( WC_Product $product ) {
+		return html_entity_decode( wp_strip_all_tags( self::get_monthly_equivalent_price_html( $product ) ), ENT_QUOTES, get_bloginfo( 'charset' ) );
 	}
 
 	/**
@@ -512,6 +540,18 @@ final class ZPB_Zen_Purchase_Blocks {
 		$subtitle    = ! empty( $item['subtitleOverride'] ) ? $item['subtitleOverride'] : '';
 		$benefits    = isset( $item['benefits'] ) && is_array( $item['benefits'] ) ? $item['benefits'] : array();
 		$card_classes = 'zpb-membership-card';
+		$price_html   = $item['priceHtml'];
+		$period_label = $item['billingPeriod'];
+
+		if ( 'yearly' === $item['billingGroup'] ) {
+			if ( ! empty( $item['monthlyPriceOverride'] ) ) {
+				$price_html = esc_html( $item['monthlyPriceOverride'] );
+			} elseif ( ! empty( $item['monthlyEquivalentHtml'] ) ) {
+				$price_html = $item['monthlyEquivalentHtml'];
+			}
+
+			$period_label = '/month';
+		}
 
 		if ( ! empty( $item['featured'] ) ) {
 			$card_classes .= ' is-featured';
@@ -534,9 +574,9 @@ final class ZPB_Zen_Purchase_Blocks {
 
 			<div class="zpb-membership-card__body">
 				<div class="zpb-membership-card__price">
-					<span class="zpb-membership-card__amount"><?php echo wp_kses_post( $item['priceHtml'] ); ?></span>
-					<?php if ( ! empty( $item['billingPeriod'] ) ) : ?>
-						<span class="zpb-membership-card__period"><?php echo esc_html( $item['billingPeriod'] ); ?></span>
+					<span class="zpb-membership-card__amount"><?php echo wp_kses_post( $price_html ); ?></span>
+					<?php if ( ! empty( $period_label ) ) : ?>
+						<span class="zpb-membership-card__period"><?php echo esc_html( $period_label ); ?></span>
 					<?php endif; ?>
 				</div>
 
@@ -612,6 +652,7 @@ final class ZPB_Zen_Purchase_Blocks {
 				'badgeText'        => isset( $item['badgeText'] ) ? sanitize_text_field( $item['badgeText'] ) : '',
 				'titleOverride'    => isset( $item['titleOverride'] ) ? sanitize_text_field( $item['titleOverride'] ) : '',
 				'subtitleOverride' => isset( $item['subtitleOverride'] ) ? sanitize_text_field( $item['subtitleOverride'] ) : '',
+				'monthlyPriceOverride' => isset( $item['monthlyPriceOverride'] ) ? sanitize_text_field( $item['monthlyPriceOverride'] ) : '',
 				'benefits'         => $benefits,
 				'moreInfo'         => isset( $item['moreInfo'] ) ? wp_kses_post( $item['moreInfo'] ) : '',
 			);

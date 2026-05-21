@@ -171,6 +171,7 @@
 						badgeText: '',
 						titleOverride: '',
 						subtitleOverride: '',
+						monthlyPriceOverride: '',
 						benefits: [],
 						moreInfo: ''
 					}
@@ -265,7 +266,7 @@
 							{ className: 'zpb-editor-product', key: key },
 							el( ToggleControl, {
 								label: product.name,
-								help: product.priceText + ( product.zencoinValueText ? ' | ' + product.zencoinValueText + ' ZC' : '' ),
+								help: product.priceText + ( product.monthlyEquivalentText ? ' | Monthly equivalent: ' + product.monthlyEquivalentText : '' ) + ( product.zencoinValueText ? ' | ' + product.zencoinValueText + ' ZC' : '' ),
 								checked: !! item,
 								onChange: function ( checked ) {
 									toggleProduct( product, checked );
@@ -286,6 +287,19 @@
 											updateItem( key, { billingGroup: value } );
 										}
 									} ),
+									( item.billingGroup || 'monthly' ) === 'yearly'
+										? el( TextControl, {
+											label: __( 'Monthly display price override', 'zen-purchase-blocks' ),
+											value: item.monthlyPriceOverride || '',
+											placeholder: product.monthlyEquivalentText || '',
+											help: product.monthlyEquivalentText
+												? __( 'Leave empty to use the calculated yearly price divided by 12.', 'zen-purchase-blocks' )
+												: __( 'Leave empty to use the calculated value when available.', 'zen-purchase-blocks' ),
+											onChange: function ( value ) {
+												updateItem( key, { monthlyPriceOverride: value } );
+											}
+										} )
+										: null,
 									el( ToggleControl, {
 										label: __( 'Featured gold card', 'zen-purchase-blocks' ),
 										checked: !! item.featured,
