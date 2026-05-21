@@ -275,8 +275,8 @@ final class ZPB_Zen_Purchase_Blocks {
 			'productId'        => $parent_id ? $parent_id : $product_id,
 			'variationId'      => $parent_id ? $product_id : 0,
 			'name'             => html_entity_decode( wp_strip_all_tags( $name ), ENT_QUOTES, get_bloginfo( 'charset' ) ),
-			'priceHtml'        => wp_kses_post( $product->get_price_html() ),
-			'priceText'        => html_entity_decode( wp_strip_all_tags( $product->get_price_html() ), ENT_QUOTES, get_bloginfo( 'charset' ) ),
+			'priceHtml'        => self::get_display_price_html( $product ),
+			'priceText'        => self::get_display_price_text( $product ),
 			'monthlyEquivalentHtml' => self::get_monthly_equivalent_price_html( $product ),
 			'monthlyEquivalentText' => self::get_monthly_equivalent_price_text( $product ),
 			'billingPeriod'    => self::get_subscription_period_label( $product ),
@@ -355,6 +355,32 @@ final class ZPB_Zen_Purchase_Blocks {
 	}
 
 	/**
+	 * Format a product amount without subscription period copy.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private static function get_display_price_html( WC_Product $product ) {
+		$price = (float) wc_get_price_to_display( $product );
+
+		if ( $price <= 0 ) {
+			return wp_kses_post( $product->get_price_html() );
+		}
+
+		return self::format_money_amount_html( $price );
+	}
+
+	/**
+	 * Format a product amount as plain text.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private static function get_display_price_text( WC_Product $product ) {
+		return html_entity_decode( wp_strip_all_tags( self::get_display_price_html( $product ) ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+	}
+
+	/**
 	 * Calculate display-only monthly equivalent price HTML for annual products.
 	 *
 	 * @param WC_Product $product Product.
@@ -367,7 +393,7 @@ final class ZPB_Zen_Purchase_Blocks {
 			return '';
 		}
 
-		return wp_kses_post( wc_price( $price / 12 ) );
+		return self::format_money_amount_html( $price / 12 );
 	}
 
 	/**
@@ -378,6 +404,36 @@ final class ZPB_Zen_Purchase_Blocks {
 	 */
 	private static function get_monthly_equivalent_price_text( WC_Product $product ) {
 		return html_entity_decode( wp_strip_all_tags( self::get_monthly_equivalent_price_html( $product ) ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+	}
+
+	/**
+	 * Format money without trailing zero decimals.
+	 *
+	 * @param float $amount Money amount.
+	 * @return string
+	 */
+	private static function format_money_amount_html( $amount ) {
+		return wp_kses_post(
+			wc_price(
+				$amount,
+				array(
+					'decimals' => self::get_amount_display_decimals( $amount ),
+				)
+			)
+		);
+	}
+
+	/**
+	 * Use decimal places only when the amount has a non-zero fractional part.
+	 *
+	 * @param float $amount Money amount.
+	 * @return int
+	 */
+	private static function get_amount_display_decimals( $amount ) {
+		$store_decimals = function_exists( 'wc_get_price_decimals' ) ? wc_get_price_decimals() : 2;
+		$rounded        = round( (float) $amount, $store_decimals );
+
+		return abs( $rounded - round( $rounded ) ) > 0.000001 ? $store_decimals : 0;
 	}
 
 	/**
@@ -397,7 +453,7 @@ final class ZPB_Zen_Purchase_Blocks {
 		return sprintf(
 			/* translators: %s: price per Zencoin */
 			__( '~ %s / Zencoin', 'zen-purchase-blocks' ),
-			wp_strip_all_tags( wc_price( $price / $coins ) )
+			wp_strip_all_tags( self::format_money_amount_html( $price / $coins ) )
 		);
 	}
 
