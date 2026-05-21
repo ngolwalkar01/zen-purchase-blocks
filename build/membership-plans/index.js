@@ -60,6 +60,11 @@
 		var setError = errorState[ 1 ];
 		var labels = normalizeLabels( attributes.labels );
 		var selectedItems = Array.isArray( attributes.selectedItems ) ? attributes.selectedItems : [];
+		var selectedPlanIds = Array.isArray( attributes.membershipPlanIds ) && attributes.membershipPlanIds.length
+			? attributes.membershipPlanIds.map( function ( id ) {
+				return parseInt( id || 0, 10 );
+			} ).filter( Boolean )
+			: ( attributes.membershipPlanId ? [ parseInt( attributes.membershipPlanId || 0, 10 ) ] : [] );
 		var selectedByKey = {};
 
 		selectedItems.forEach( function ( item ) {
@@ -77,7 +82,7 @@
 		}, [] );
 
 		useEffect( function () {
-			if ( ! attributes.membershipPlanId ) {
+			if ( selectedPlanIds.length === 0 ) {
 				setProducts( [] );
 				return;
 			}
@@ -85,16 +90,50 @@
 			setLoading( true );
 			setError( '' );
 
-			apiFetch( { path: '/zen-purchase-blocks/v1/membership-plans/' + attributes.membershipPlanId + '/products' } )
+			apiFetch( { path: '/zen-purchase-blocks/v1/membership-plan-products?ids=' + encodeURIComponent( selectedPlanIds.join( ',' ) ) } )
 				.then( function ( response ) {
-					setProducts( response || [] );
+					var nextProducts = response || [];
+					var availableKeys = {};
+
+					nextProducts.forEach( function ( product ) {
+						availableKeys[ itemKey( product.productId, product.variationId ) ] = true;
+					} );
+
+					setProducts( nextProducts );
+
+					if ( selectedItems.some( function ( item ) {
+						return ! availableKeys[ itemKey( item.productId, item.variationId ) ];
+					} ) ) {
+						setAttributes( {
+							selectedItems: selectedItems.filter( function ( item ) {
+								return availableKeys[ itemKey( item.productId, item.variationId ) ];
+							} )
+						} );
+					}
+
 					setLoading( false );
 				} )
 				.catch( function () {
 					setError( __( 'Could not load products for this membership plan.', 'zen-purchase-blocks' ) );
 					setLoading( false );
 				} );
-		}, [ attributes.membershipPlanId ] );
+		}, [ selectedPlanIds.join( ',' ) ] );
+
+		function togglePlan( planId, checked ) {
+			var id = parseInt( planId || 0, 10 );
+			var next = selectedPlanIds.filter( function ( existingId ) {
+				return existingId !== id;
+			} );
+
+			if ( checked && id ) {
+				next.push( id );
+			}
+
+			setAttributes( {
+				membershipPlanId: next.length ? next[ 0 ] : 0,
+				membershipPlanIds: next
+			} );
+		}
 
 		function updateLabels( key, value ) {
 			var next = Object.assign( {}, labels );
@@ -145,12 +184,6 @@
 			setAttributes( { selectedItems: next } );
 		}
 
-		var planOptions = [ { label: __( 'Select a membership plan', 'zen-purchase-blocks' ), value: 0 } ].concat(
-			plans.map( function ( plan ) {
-				return { label: plan.name, value: plan.id };
-			} )
-		);
-
 		return el(
 			'div',
 			blockProps,
@@ -160,14 +193,18 @@
 				el(
 					PanelBody,
 					{ title: __( 'Membership Source', 'zen-purchase-blocks' ), initialOpen: true },
-					el( SelectControl, {
-						label: __( 'Membership plan', 'zen-purchase-blocks' ),
-						value: attributes.membershipPlanId || 0,
-						options: planOptions,
-						onChange: function ( value ) {
-							setAttributes( { membershipPlanId: parseInt( value || 0, 10 ), selectedItems: [] } );
-						}
-					} ),
+					plans.length
+						? plans.map( function ( plan ) {
+							return el( ToggleControl, {
+								key: plan.id,
+								label: plan.name,
+								checked: selectedPlanIds.indexOf( parseInt( plan.id || 0, 10 ) ) !== -1,
+								onChange: function ( checked ) {
+									togglePlan( plan.id, checked );
+								}
+							} );
+						} )
+						: el( 'p', null, __( 'No membership plans found.', 'zen-purchase-blocks' ) ),
 					loading ? el( Spinner ) : null,
 					error ? el( Notice, { status: 'error', isDismissible: false }, error ) : null
 				),
@@ -213,11 +250,11 @@
 				el(
 					PanelBody,
 					{ title: __( 'Products To Show', 'zen-purchase-blocks' ), initialOpen: true },
-					! attributes.membershipPlanId
-						? el( 'p', null, __( 'Choose a membership plan first.', 'zen-purchase-blocks' ) )
+					selectedPlanIds.length === 0
+						? el( 'p', null, __( 'Choose one or more membership plans first.', 'zen-purchase-blocks' ) )
 						: null,
-					attributes.membershipPlanId && ! loading && products.length === 0
-						? el( 'p', null, __( 'No assigned products or variations were found for this plan.', 'zen-purchase-blocks' ) )
+					selectedPlanIds.length > 0 && ! loading && products.length === 0
+						? el( 'p', null, __( 'No assigned products or variations were found for the selected plans.', 'zen-purchase-blocks' ) )
 						: null,
 					products.map( function ( product ) {
 						var key = itemKey( product.productId, product.variationId );

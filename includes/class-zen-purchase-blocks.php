@@ -65,6 +65,23 @@ final class ZPB_Zen_Purchase_Blocks {
 				),
 			)
 		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/membership-plan-products',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( __CLASS__, 'rest_get_membership_plans_products' ),
+				'permission_callback' => array( __CLASS__, 'can_edit_blocks' ),
+				'args'                => array(
+					'ids' => array(
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'required'          => false,
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -133,6 +150,60 @@ final class ZPB_Zen_Purchase_Blocks {
 		$plan_id = absint( $request['id'] );
 
 		return rest_ensure_response( self::get_membership_plan_product_options( $plan_id ) );
+	}
+
+	/**
+	 * REST: get purchasable products/variations assigned to multiple membership plans.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response
+	 */
+	public static function rest_get_membership_plans_products( WP_REST_Request $request ) {
+		$plan_ids = self::normalize_plan_ids( array( 'membershipPlanIds' => explode( ',', (string) $request->get_param( 'ids' ) ) ) );
+
+		return rest_ensure_response( self::get_membership_plans_product_options( $plan_ids ) );
+	}
+
+	/**
+	 * Normalize plan IDs from block attributes or REST values.
+	 *
+	 * @param array $attributes Block attributes or plan values.
+	 * @return int[]
+	 */
+	private static function normalize_plan_ids( array $attributes ) {
+		$plan_ids = array();
+
+		if ( ! empty( $attributes['membershipPlanIds'] ) && is_array( $attributes['membershipPlanIds'] ) ) {
+			$plan_ids = array_map( 'absint', $attributes['membershipPlanIds'] );
+		} elseif ( ! empty( $attributes['membershipPlanId'] ) ) {
+			$plan_ids = array( absint( $attributes['membershipPlanId'] ) );
+		}
+
+		return array_values( array_unique( array_filter( $plan_ids ) ) );
+	}
+
+	/**
+	 * Build selectable product options for several plans.
+	 *
+	 * @param int[] $plan_ids Plan IDs.
+	 * @return array
+	 */
+	private static function get_membership_plans_product_options( array $plan_ids ) {
+		$options = array();
+
+		foreach ( $plan_ids as $plan_id ) {
+			foreach ( self::get_membership_plan_product_options( $plan_id ) as $option ) {
+				if ( empty( $options[ $option['key'] ] ) ) {
+					$options[ $option['key'] ] = $option;
+					$options[ $option['key'] ]['membershipPlanIds'] = array( $plan_id );
+				} else {
+					$options[ $option['key'] ]['membershipPlanIds'][] = $plan_id;
+					$options[ $option['key'] ]['membershipPlanIds'] = array_values( array_unique( $options[ $option['key'] ]['membershipPlanIds'] ) );
+				}
+			}
+		}
+
+		return array_values( $options );
 	}
 
 	/**
@@ -339,16 +410,16 @@ final class ZPB_Zen_Purchase_Blocks {
 			return '<div class="zpb-membership-plans zpb-membership-plans--notice">' . esc_html__( 'WooCommerce Memberships is required to show membership plans.', 'zen-purchase-blocks' ) . '</div>';
 		}
 
-		$plan_id = isset( $attributes['membershipPlanId'] ) ? absint( $attributes['membershipPlanId'] ) : 0;
+		$plan_ids = self::normalize_plan_ids( $attributes );
 
-		if ( ! $plan_id ) {
+		if ( empty( $plan_ids ) ) {
 			return '';
 		}
 
 		$selected_items = self::normalize_selected_items( isset( $attributes['selectedItems'] ) ? $attributes['selectedItems'] : array() );
 		$product_map    = array();
 
-		foreach ( self::get_membership_plan_product_options( $plan_id ) as $option ) {
+		foreach ( self::get_membership_plans_product_options( $plan_ids ) as $option ) {
 			$product_map[ $option['key'] ] = $option;
 		}
 
