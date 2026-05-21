@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "zen-purchase-blocks/drop-ins",
+  "version": "0.3.0",
+  "title": "Zen Drop-ins",
+  "category": "woocommerce",
+  "icon": "tickets",
+  "description": "Display configurable Zencoin drop-in product cards.",
+  "textdomain": "zen-purchase-blocks",
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "align": ["wide", "full"]
+  },
+  "attributes": {
+    "heading": {
+      "type": "string",
+      "default": "DROP-IN"
+    },
+    "intro": {
+      "type": "string",
+      "default": ""
+    },
+    "selectedItems": {
+      "type": "array",
+      "default": []
+    },
+    "labels": {
+      "type": "object",
+      "default": {
+        "zencoins": "ZENCOINS:",
+        "usageText": "For all Courses and Fire & Ice Zone",
+        "validityText": "Valid for 3 Months beginning with the date of purchase",
+        "freeNote": "*Only one use",
+        "button": "Book now"
+      }
+    }
+  },
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css"
+}

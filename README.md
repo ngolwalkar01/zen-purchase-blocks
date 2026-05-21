@@ -19,6 +19,12 @@ Dynamic Gutenberg blocks for Zenctuary purchase offers.
 - Pulls price, Zencoin amount, price per Zencoin, validity days, and add-to-cart URL from WooCommerce/CBB meta.
 - Supports per-card overrides for displayed Zencoins, usage text, validity text, and button label.
 
+- `Zen Drop-ins`
+- Lists WooCommerce products where CBB Zencoin product type is `drop_in` or `free_drop_in`.
+- Lets the editor choose which drop-in products to show.
+- Pulls price, Zencoin amount, product image, validity days, and add-to-cart URL from WooCommerce/CBB meta.
+- Supports per-card overrides for image URL, price, displayed Zencoins, usage text, validity text, note text, and button label.
+
 ## Dependencies
 
 - WooCommerce
@@ -39,3 +45,9 @@ For packages:
 1. Add the **Zen Zencoin Packages** block.
 2. Enable the package products to display.
 3. Optionally override Zencoin display, usage text, validity text, or button label per card.
+
+For drop-ins:
+
+1. Add the **Zen Drop-ins** block.
+2. Enable the drop-in or free drop-in products to display.
+3. Optionally override image URL, price display, Zencoin display, usage text, validity text, note text, or button label per card.

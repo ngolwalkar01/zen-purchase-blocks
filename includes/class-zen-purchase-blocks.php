@@ -40,6 +40,13 @@ final class ZPB_Zen_Purchase_Blocks {
 				'render_callback' => array( __CLASS__, 'render_zencoin_packages_block' ),
 			)
 		);
+
+		register_block_type(
+			ZPB_PLUGIN_DIR . 'build/drop-ins',
+			array(
+				'render_callback' => array( __CLASS__, 'render_drop_ins_block' ),
+			)
+		);
 	}
 
 	/**
@@ -96,6 +103,16 @@ final class ZPB_Zen_Purchase_Blocks {
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( __CLASS__, 'rest_get_package_products' ),
+				'permission_callback' => array( __CLASS__, 'can_edit_blocks' ),
+			)
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/drop-in-products',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( __CLASS__, 'rest_get_drop_in_products' ),
 				'permission_callback' => array( __CLASS__, 'can_edit_blocks' ),
 			)
 		);
@@ -197,6 +214,15 @@ final class ZPB_Zen_Purchase_Blocks {
 	 */
 	public static function rest_get_package_products() {
 		return rest_ensure_response( self::get_package_product_options() );
+	}
+
+	/**
+	 * REST: get Zencoin drop-in products.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function rest_get_drop_in_products() {
+		return rest_ensure_response( self::get_drop_in_product_options() );
 	}
 
 	/**
@@ -339,6 +365,54 @@ final class ZPB_Zen_Purchase_Blocks {
 	}
 
 	/**
+	 * Build selectable product options for CBB drop-in products.
+	 *
+	 * @return array
+	 */
+	private static function get_drop_in_product_options() {
+		if ( ! self::woocommerce_loaded() ) {
+			return array();
+		}
+
+		$query = new WP_Query(
+			array(
+				'post_type'      => 'product',
+				'post_status'    => array( 'publish', 'private' ),
+				'posts_per_page' => 100,
+				'orderby'        => 'menu_order title',
+				'order'          => 'ASC',
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array(
+						'key'     => '_cbb_zencoin_product_type',
+						'value'   => array( 'drop_in', 'free_drop_in' ),
+						'compare' => 'IN',
+					),
+				),
+			)
+		);
+
+		$options = array();
+
+		foreach ( $query->posts as $product_id ) {
+			$product = wc_get_product( $product_id );
+
+			if ( $product ) {
+				$options[] = self::format_drop_in_option( $product );
+			}
+		}
+
+		return array_values(
+			array_filter(
+				$options,
+				static function ( $option ) {
+					return ! empty( $option['productId'] );
+				}
+			)
+		);
+	}
+
+	/**
 	 * Format a package product for editor and renderer use.
 	 *
 	 * @param WC_Product $product Product.
@@ -349,6 +423,22 @@ final class ZPB_Zen_Purchase_Blocks {
 
 		$option['packageSize']  = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_package_size', true );
 		$option['validityDays'] = absint( get_post_meta( $product->get_id(), '_cbb_zencoin_validity_days', true ) );
+
+		return $option;
+	}
+
+	/**
+	 * Format a drop-in product for editor and renderer use.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return array
+	 */
+	private static function format_drop_in_option( WC_Product $product ) {
+		$option = self::format_product_option( $product );
+
+		$option['productType']  = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_product_type', true );
+		$option['validityDays'] = absint( get_post_meta( $product->get_id(), '_cbb_zencoin_validity_days', true ) );
+		$option['imageUrl']     = get_the_post_thumbnail_url( $product->get_id(), 'large' );
 
 		return $option;
 	}
@@ -1012,6 +1102,214 @@ final class ZPB_Zen_Purchase_Blocks {
 			'validityText'      => __( 'Valid for 3 Months beginning with the date of purchase', 'zen-purchase-blocks' ),
 			'largeValidityText' => __( 'Valid for 6 Months beginning with the date of purchase', 'zen-purchase-blocks' ),
 			'button'            => __( 'Book now', 'zen-purchase-blocks' ),
+		);
+	}
+
+	/**
+	 * Render the Drop-ins block.
+	 *
+	 * @param array $attributes Block attributes.
+	 * @return string
+	 */
+	public static function render_drop_ins_block( $attributes ) {
+		if ( ! self::woocommerce_loaded() ) {
+			return '<div class="zpb-dropins zpb-dropins--notice">' . esc_html__( 'WooCommerce is required to show drop-ins.', 'zen-purchase-blocks' ) . '</div>';
+		}
+
+		$selected_items = self::normalize_drop_in_items( isset( $attributes['selectedItems'] ) ? $attributes['selectedItems'] : array() );
+
+		if ( empty( $selected_items ) ) {
+			return '';
+		}
+
+		$product_map = array();
+
+		foreach ( self::get_drop_in_product_options() as $option ) {
+			$product_map[ (string) $option['productId'] ] = $option;
+		}
+
+		$items = array();
+
+		foreach ( $selected_items as $item ) {
+			$key = (string) $item['productId'];
+
+			if ( empty( $product_map[ $key ] ) ) {
+				continue;
+			}
+
+			$items[] = array_merge( $product_map[ $key ], $item );
+		}
+
+		if ( empty( $items ) ) {
+			return '';
+		}
+
+		wp_enqueue_style( 'zen-purchase-blocks-drop-ins-style' );
+
+		$labels       = wp_parse_args(
+			isset( $attributes['labels'] ) && is_array( $attributes['labels'] ) ? $attributes['labels'] : array(),
+			self::get_default_drop_in_labels()
+		);
+		$wrapper_attr = get_block_wrapper_attributes(
+			array(
+				'class' => 'zpb-dropins',
+			)
+		);
+
+		ob_start();
+		?>
+		<section <?php echo $wrapper_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+			<?php if ( ! empty( $attributes['heading'] ) ) : ?>
+				<h2 class="zpb-dropins__heading"><?php echo esc_html( $attributes['heading'] ); ?></h2>
+			<?php endif; ?>
+
+			<?php if ( ! empty( $attributes['intro'] ) ) : ?>
+				<p class="zpb-dropins__intro"><?php echo wp_kses_post( $attributes['intro'] ); ?></p>
+			<?php endif; ?>
+
+			<div class="zpb-dropins__grid">
+				<?php foreach ( $items as $item ) : ?>
+					<?php echo self::render_drop_in_card( $item, $labels ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php endforeach; ?>
+			</div>
+		</section>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render one drop-in card.
+	 *
+	 * @param array $item   Item data.
+	 * @param array $labels Labels.
+	 * @return string
+	 */
+	private static function render_drop_in_card( array $item, array $labels ) {
+		$coins         = ! empty( $item['zencoinOverride'] ) ? $item['zencoinOverride'] : $item['zencoinValueText'];
+		$usage_text    = ! empty( $item['usageText'] ) ? $item['usageText'] : $labels['usageText'];
+		$validity_text = ! empty( $item['validityText'] ) ? $item['validityText'] : self::get_drop_in_validity_text( $item, $labels );
+		$note_text     = ! empty( $item['noteText'] ) ? $item['noteText'] : ( 'free_drop_in' === $item['productType'] ? $labels['freeNote'] : '' );
+		$button_label  = ! empty( $item['buttonLabel'] ) ? $item['buttonLabel'] : $labels['button'];
+		$image_url     = ! empty( $item['imageUrlOverride'] ) ? $item['imageUrlOverride'] : $item['imageUrl'];
+		$price_html    = ! empty( $item['priceOverride'] ) ? esc_html( $item['priceOverride'] ) : $item['priceHtml'];
+
+		ob_start();
+		?>
+		<article class="zpb-dropin-card">
+			<header class="zpb-dropin-card__media">
+				<?php if ( $image_url ) : ?>
+					<img src="<?php echo esc_url( $image_url ); ?>" alt="" loading="lazy" />
+				<?php endif; ?>
+				<div class="zpb-dropin-card__media-overlay"></div>
+				<div class="zpb-dropin-card__coins">
+					<span class="zpb-dropin-card__coins-label"><?php echo esc_html( $labels['zencoins'] ); ?></span>
+					<?php if ( $coins ) : ?>
+						<span class="zpb-dropin-card__coin"><?php echo esc_html( $coins ); ?></span>
+					<?php endif; ?>
+				</div>
+			</header>
+
+			<div class="zpb-dropin-card__body">
+				<div class="zpb-dropin-card__price"><?php echo wp_kses_post( $price_html ); ?></div>
+
+				<?php if ( $usage_text ) : ?>
+					<div class="zpb-dropin-card__usage">
+						<span class="zpb-dropin-card__check" aria-hidden="true"></span>
+						<span><?php echo esc_html( $usage_text ); ?></span>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $validity_text ) : ?>
+					<p class="zpb-dropin-card__validity"><?php echo esc_html( $validity_text ); ?></p>
+				<?php endif; ?>
+
+				<?php if ( $note_text ) : ?>
+					<p class="zpb-dropin-card__note"><?php echo esc_html( $note_text ); ?></p>
+				<?php endif; ?>
+
+				<a class="zpb-dropin-card__button" href="<?php echo esc_url( ! empty( $item['purchasable'] ) ? $item['addToCartUrl'] : $item['permalink'] ); ?>">
+					<?php echo esc_html( $button_label ); ?>
+				</a>
+			</div>
+		</article>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Normalize selected drop-in items.
+	 *
+	 * @param mixed $items Raw items.
+	 * @return array
+	 */
+	private static function normalize_drop_in_items( $items ) {
+		if ( ! is_array( $items ) ) {
+			return array();
+		}
+
+		$normalized = array();
+
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$product_id = isset( $item['productId'] ) ? absint( $item['productId'] ) : 0;
+
+			if ( ! $product_id ) {
+				continue;
+			}
+
+			$normalized[] = array(
+				'productId'        => $product_id,
+				'zencoinOverride'  => isset( $item['zencoinOverride'] ) ? sanitize_text_field( $item['zencoinOverride'] ) : '',
+				'priceOverride'    => isset( $item['priceOverride'] ) ? sanitize_text_field( $item['priceOverride'] ) : '',
+				'imageUrlOverride' => isset( $item['imageUrlOverride'] ) ? esc_url_raw( $item['imageUrlOverride'] ) : '',
+				'usageText'        => isset( $item['usageText'] ) ? sanitize_text_field( $item['usageText'] ) : '',
+				'validityText'     => isset( $item['validityText'] ) ? sanitize_text_field( $item['validityText'] ) : '',
+				'noteText'         => isset( $item['noteText'] ) ? sanitize_text_field( $item['noteText'] ) : '',
+				'buttonLabel'      => isset( $item['buttonLabel'] ) ? sanitize_text_field( $item['buttonLabel'] ) : '',
+			);
+		}
+
+		return $normalized;
+	}
+
+	/**
+	 * Build fallback drop-in validity copy.
+	 *
+	 * @param array $item   Item data.
+	 * @param array $labels Labels.
+	 * @return string
+	 */
+	private static function get_drop_in_validity_text( array $item, array $labels ) {
+		if ( ! empty( $item['validityDays'] ) ) {
+			$months = (int) round( (int) $item['validityDays'] / 30 );
+
+			if ( $months > 0 ) {
+				return sprintf(
+					/* translators: %s: number of months */
+					__( 'Valid for %s Months beginning with the date of purchase', 'zen-purchase-blocks' ),
+					$months
+				);
+			}
+		}
+
+		return $labels['validityText'];
+	}
+
+	/**
+	 * Default drop-in labels.
+	 *
+	 * @return array
+	 */
+	private static function get_default_drop_in_labels() {
+		return array(
+			'zencoins'     => __( 'ZENCOINS:', 'zen-purchase-blocks' ),
+			'usageText'    => __( 'For all Courses and Fire & Ice Zone', 'zen-purchase-blocks' ),
+			'validityText' => __( 'Valid for 3 Months beginning with the date of purchase', 'zen-purchase-blocks' ),
+			'freeNote'     => __( '*Only one use', 'zen-purchase-blocks' ),
+			'button'       => __( 'Book now', 'zen-purchase-blocks' ),
 		);
 	}
 
