@@ -72,7 +72,7 @@
 	align-items: stretch;
 	display: grid;
 	gap: 48px;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 496px));
+	grid-template-columns: repeat(auto-fit, minmax(280px, 370px));
 	justify-content: center;
 	margin: 0 auto;
 	max-width: 1120px;
@@ -141,6 +141,16 @@
 	line-height: 0.92;
 }
 
+.zpb-membership-card__brand-logo {
+	display: block;
+	height: auto;
+	margin: 0 auto 8px;
+	max-height: 68px;
+	max-width: 280px;
+	object-fit: contain;
+	width: auto;
+}
+
 .zpb-membership-card__title,
 .zpb-membership-card__subtitle {
 	color: inherit;
@@ -149,7 +159,7 @@
 }
 
 .zpb-membership-card__title {
-	font-size: 25px;
+	font-size: 24px;
 	font-style: italic;
 	font-weight: 500;
 	letter-spacing: 0.08em;
@@ -166,7 +176,7 @@
 	display: flex;
 	flex: 1;
 	flex-direction: column;
-	padding: 42px 42px 34px;
+	padding: 35px;
 }
 
 .zpb-membership-card__price {
@@ -177,7 +187,7 @@
 }
 
 .zpb-membership-card__amount {
-	font-size: clamp(56px, 8vw, 76px);
+	font-size: clamp(56px, 8vw, 56px);
 	font-weight: 900;
 	letter-spacing: -0.04em;
 	line-height: 0.95;
@@ -188,7 +198,7 @@
 }
 
 .zpb-membership-card__period {
-	font-size: 25px;
+	font-size: 18px;
 	margin-left: 8px;
 }
 
@@ -214,10 +224,10 @@
 	display: inline-flex;
 	font-size: 25px;
 	font-weight: 800;
-	height: 56px;
+	height: 47px;
 	justify-content: center;
 	line-height: 1;
-	width: 56px;
+	width: 47px;
 }
 
 .zpb-membership-card.is-featured .zpb-membership-card__coin {
@@ -239,7 +249,7 @@
 }
 
 .zpb-membership-card__benefits li {
-	font-size: 21px;
+	font-size: 16px;
 	font-weight: 800;
 	line-height: 1.28;
 	padding-left: 50px;
@@ -271,7 +281,7 @@
 	border-radius: 999px;
 	color: var(--zpb-gold);
 	display: inline-flex;
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: 800;
 	justify-content: center;
 	margin: auto 0 30px;
@@ -293,7 +303,7 @@
 
 .zpb-membership-card__more summary {
 	cursor: pointer;
-	font-size: 20px;
+	font-size: 16px;
 	font-weight: 800;
 	list-style: none;
 	position: relative;

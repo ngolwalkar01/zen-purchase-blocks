@@ -722,6 +722,7 @@ final class ZPB_Zen_Purchase_Blocks {
 			isset( $attributes['labels'] ) && is_array( $attributes['labels'] ) ? $attributes['labels'] : array(),
 			self::get_default_labels()
 		);
+		$brand_logo   = self::normalize_brand_logo( isset( $attributes['brandLogo'] ) ? $attributes['brandLogo'] : array() );
 		$active_group = isset( $groups['monthly'] ) ? 'monthly' : array_key_first( $groups );
 		$wrapper_attr = get_block_wrapper_attributes(
 			array(
@@ -761,7 +762,7 @@ final class ZPB_Zen_Purchase_Blocks {
 					<div class="zpb-membership-plans__panel <?php echo $group_key === $active_group ? 'is-active' : ''; ?>" data-zpb-panel="<?php echo esc_attr( $group_key ); ?>">
 						<div class="zpb-membership-plans__grid">
 							<?php foreach ( $items as $item ) : ?>
-								<?php echo self::render_membership_card( $item, $labels ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+								<?php echo self::render_membership_card( $item, $labels, $brand_logo ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							<?php endforeach; ?>
 						</div>
 					</div>
@@ -779,7 +780,7 @@ final class ZPB_Zen_Purchase_Blocks {
 	 * @param array $labels Labels.
 	 * @return string
 	 */
-	private static function render_membership_card( array $item, array $labels ) {
+	private static function render_membership_card( array $item, array $labels, array $brand_logo = array() ) {
 		$title       = ! empty( $item['titleOverride'] ) ? $item['titleOverride'] : $item['name'];
 		$subtitle    = ! empty( $item['subtitleOverride'] ) ? $item['subtitleOverride'] : '';
 		$benefits    = isset( $item['benefits'] ) && is_array( $item['benefits'] ) ? $item['benefits'] : array();
@@ -809,7 +810,11 @@ final class ZPB_Zen_Purchase_Blocks {
 			<?php endif; ?>
 
 			<header class="zpb-membership-card__header">
-				<div class="zpb-membership-card__brand">zenctuary</div>
+				<?php if ( ! empty( $brand_logo['url'] ) ) : ?>
+					<img class="zpb-membership-card__brand-logo" src="<?php echo esc_url( $brand_logo['url'] ); ?>" alt="<?php echo esc_attr( $brand_logo['alt'] ); ?>" loading="lazy" />
+				<?php else : ?>
+					<div class="zpb-membership-card__brand">zenctuary</div>
+				<?php endif; ?>
 				<h3 class="zpb-membership-card__title"><?php echo esc_html( $title ); ?></h3>
 				<?php if ( $subtitle ) : ?>
 					<p class="zpb-membership-card__subtitle"><?php echo esc_html( $subtitle ); ?></p>
@@ -827,7 +832,7 @@ final class ZPB_Zen_Purchase_Blocks {
 				<?php if ( ! empty( $item['zencoinValueText'] ) ) : ?>
 					<div class="zpb-membership-card__coins">
 						<span class="zpb-membership-card__coins-label"><?php echo esc_html( $labels['zencoins'] ); ?></span>
-						<span class="zpb-membership-card__coin"><?php echo esc_html( $item['zencoinValueText'] ); ?></span>
+						<span class="zpb-membership-card__coin zen-coin-global"><?php echo esc_html( $item['zencoinValueText'] ); ?></span>
 						<?php if ( ! empty( $item['perZencoinText'] ) ) : ?>
 							<span class="zpb-membership-card__coin-rate"><?php echo esc_html( $item['perZencoinText'] ); ?></span>
 						<?php endif; ?>
@@ -858,6 +863,28 @@ final class ZPB_Zen_Purchase_Blocks {
 		</article>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Normalize membership card brand logo data.
+	 *
+	 * @param mixed $logo Raw logo attribute.
+	 * @return array
+	 */
+	private static function normalize_brand_logo( $logo ) {
+		if ( ! is_array( $logo ) ) {
+			return array(
+				'id'  => 0,
+				'url' => '',
+				'alt' => '',
+			);
+		}
+
+		return array(
+			'id'  => isset( $logo['id'] ) ? absint( $logo['id'] ) : 0,
+			'url' => isset( $logo['url'] ) ? esc_url_raw( $logo['url'] ) : '',
+			'alt' => isset( $logo['alt'] ) ? sanitize_text_field( $logo['alt'] ) : '',
+		);
 	}
 
 	/**

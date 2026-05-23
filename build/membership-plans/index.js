@@ -4,6 +4,8 @@
 	var registerBlockType = blocks.registerBlockType;
 	var useBlockProps = blockEditor.useBlockProps;
 	var InspectorControls = blockEditor.InspectorControls;
+	var MediaUpload = blockEditor.MediaUpload;
+	var MediaUploadCheck = blockEditor.MediaUploadCheck;
 	var PanelBody = components.PanelBody;
 	var SelectControl = components.SelectControl;
 	var TextControl = components.TextControl;
@@ -59,6 +61,7 @@
 		var error = errorState[ 0 ];
 		var setError = errorState[ 1 ];
 		var labels = normalizeLabels( attributes.labels );
+		var brandLogo = attributes.brandLogo || {};
 		var selectedItems = Array.isArray( attributes.selectedItems ) ? attributes.selectedItems : [];
 		var selectedPlanIds = Array.isArray( attributes.membershipPlanIds ) && attributes.membershipPlanIds.length
 			? attributes.membershipPlanIds.map( function ( id ) {
@@ -247,6 +250,63 @@
 							updateLabels( 'button', value );
 						}
 					} )
+				),
+				el(
+					PanelBody,
+					{ title: __( 'Card Brand Logo', 'zen-purchase-blocks' ), initialOpen: false },
+					el(
+						MediaUploadCheck,
+						null,
+						el( MediaUpload, {
+							allowedTypes: [ 'image' ],
+							value: brandLogo.id || 0,
+							onSelect: function ( media ) {
+								setAttributes( {
+									brandLogo: {
+										id: media.id || 0,
+										url: media.url || '',
+										alt: media.alt || ''
+									}
+								} );
+							},
+							render: function ( mediaUpload ) {
+								return el(
+									'div',
+									null,
+									brandLogo.url
+										? el( 'img', {
+											src: brandLogo.url,
+											alt: brandLogo.alt || '',
+											style: {
+												display: 'block',
+												maxWidth: '180px',
+												height: 'auto',
+												marginBottom: '12px'
+											}
+										} )
+										: el( 'p', null, __( 'No logo selected. Cards will show the text brand.', 'zen-purchase-blocks' ) ),
+									el(
+										Button,
+										{ variant: 'secondary', onClick: mediaUpload.open },
+										brandLogo.url ? __( 'Replace logo', 'zen-purchase-blocks' ) : __( 'Select logo', 'zen-purchase-blocks' )
+									),
+									brandLogo.url
+										? el(
+											Button,
+											{
+												variant: 'link',
+												isDestructive: true,
+												onClick: function () {
+													setAttributes( { brandLogo: { id: 0, url: '', alt: '' } } );
+												}
+											},
+											__( 'Remove logo', 'zen-purchase-blocks' )
+										)
+										: null
+								);
+							}
+						} )
+					)
 				),
 				el(
 					PanelBody,
