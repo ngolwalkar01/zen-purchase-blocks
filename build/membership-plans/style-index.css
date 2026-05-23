@@ -212,7 +212,7 @@
 }
 
 .zpb-membership-card__coins-label {
-	font-size: 24px;
+	font-size: 18px;
 	font-weight: 800;
 }
 
@@ -236,7 +236,7 @@
 
 .zpb-membership-card__coin-rate {
 	color: rgba(63, 61, 61, 0.58);
-	font-size: 17px;
+	font-size: 14px;
 }
 
 .zpb-membership-card__benefits {
