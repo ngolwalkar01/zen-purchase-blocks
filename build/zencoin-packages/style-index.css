@@ -44,7 +44,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 54px;
-	justify-content: center;
+	justify-content: flex-start;
 	margin: 0 auto;
 	max-width: 1760px;
 }
@@ -54,12 +54,12 @@
 	border-radius: 40px;
 	color: var(--zpb-text);
 	display: flex;
-	flex: 0 0 550px;
+	flex: 0 0 450px;
 	flex-direction: column;
 	min-height: 590px;
 	max-width: 100%;
 	overflow: hidden;
-	width: 550px;
+	width: 450px;
 }
 
 .zpb-package-card__header {
