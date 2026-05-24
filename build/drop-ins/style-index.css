@@ -21,7 +21,7 @@
 
 .zpb-dropins__heading {
 	color: var(--zpb-gold);
-	font-size: 60px;
+	font-size: 56px;
 	font-weight: 900;
 	letter-spacing: 0.03em;
 	line-height: 1;
@@ -32,7 +32,7 @@
 
 .zpb-dropins__intro {
 	color: var(--zpb-cream);
-	font-size: 30px;
+	font-size: 27px;
 	line-height: 1.42;
 	margin: 0 auto 78px;
 	max-width: 1260px;
@@ -40,32 +40,32 @@
 }
 
 .zpb-dropins__grid {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 68px;
+	display: grid;
+	gap: 48px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	justify-content: center;
 	margin: 0 auto;
-	max-width: 1250px;
+	max-width: 1120px;
 }
 
 .zpb-dropin-card {
 	background: var(--zpb-cream);
-	border: 3px solid var(--zpb-gold);
-	border-radius: 42px;
+	border: 2px solid var(--zpb-gold);
+	border-radius: 32px;
 	color: var(--zpb-dark);
 	display: flex;
-	flex: 0 0 450px;
 	flex-direction: column;
-	min-height: 695px;
+	min-height: 640px;
+	min-width: 0;
 	max-width: 100%;
 	overflow: hidden;
-	width: 450px;
+	width: 100%;
 }
 
 .zpb-dropin-card__media {
 	align-items: center;
 	display: flex;
-	height: 145px;
+	height: 118px;
 	justify-content: center;
 	overflow: hidden;
 	position: relative;
@@ -89,7 +89,7 @@
 .zpb-dropin-card__coins {
 	align-items: center;
 	display: flex;
-	gap: 18px;
+	gap: 10px;
 	justify-content: center;
 	position: relative;
 	z-index: 1;
@@ -97,39 +97,39 @@
 
 .zpb-dropin-card__coins-label {
 	color: var(--zpb-gold);
-	font-size: 28px;
+	font-size: 18px;
 	font-weight: 900;
 }
 
 .zpb-dropin-card__coin {
 	align-items: center;
 	background: var(--zpb-gold);
-	border: 4px solid var(--zpb-dark);
+	border: 3px solid var(--zpb-dark);
 	border-radius: 50%;
-	box-shadow: 0 0 0 4px var(--zpb-gold);
+	box-shadow: 0 0 0 2px var(--zpb-gold);
 	color: var(--zpb-dark);
 	display: inline-flex;
-	font-size: 28px;
+	font-size: 25px;
 	font-weight: 900;
-	height: 58px;
+	height: 47px;
 	justify-content: center;
-	width: 58px;
+	width: 47px;
 }
 
 .zpb-dropin-card__body {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
-	padding: 56px 52px 42px;
+	padding: 35px;
 }
 
 .zpb-dropin-card__price {
 	color: var(--zpb-dark);
-	font-size: 92px;
+	font-size: 56px;
 	font-weight: 900;
 	letter-spacing: -0.04em;
 	line-height: 0.95;
-	margin-bottom: 56px;
+	margin-bottom: 34px;
 	text-align: center;
 	text-transform: uppercase;
 }
@@ -141,11 +141,11 @@
 .zpb-dropin-card__usage {
 	align-items: center;
 	display: flex;
-	gap: 24px;
-	font-size: 26px;
+	gap: 18px;
+	font-size: 16px;
 	font-weight: 900;
 	line-height: 1.25;
-	margin-bottom: 30px;
+	margin-bottom: 22px;
 }
 
 .zpb-dropin-card__check {
@@ -155,14 +155,14 @@
 	color: var(--zpb-gold);
 	display: inline-flex;
 	flex: 0 0 auto;
-	height: 44px;
+	height: 32px;
 	justify-content: center;
-	width: 44px;
+	width: 32px;
 }
 
 .zpb-dropin-card__check::before {
 	content: "\2713";
-	font-size: 32px;
+	font-size: 21px;
 	font-weight: 900;
 	line-height: 1;
 }
@@ -170,33 +170,33 @@
 .zpb-dropin-card__validity,
 .zpb-dropin-card__note {
 	color: var(--zpb-dark);
-	font-size: 23px;
+	font-size: 16px;
 	line-height: 1.4;
 	margin: 0;
 }
 
 .zpb-dropin-card__validity {
-	margin-bottom: 30px;
+	margin-bottom: 24px;
 	max-width: 560px;
 }
 
 .zpb-dropin-card__note {
-	margin-bottom: 40px;
+	margin-bottom: 32px;
 }
 
 .zpb-dropin-card__button {
 	align-items: center;
 	background: var(--zpb-dark);
-	border: 3px solid var(--zpb-gold);
+	border: 2px solid var(--zpb-gold);
 	border-radius: 999px;
 	color: var(--zpb-gold);
 	display: inline-flex;
-	font-size: 25px;
+	font-size: 16px;
 	font-weight: 900;
 	justify-content: center;
 	margin-top: auto;
-	min-height: 84px;
-	padding: 20px 32px;
+	min-height: 70px;
+	padding: 16px 24px;
 	text-decoration: none;
 	width: 100%;
 }
@@ -230,7 +230,6 @@
 
 	.zpb-dropin-card {
 		border-radius: 28px;
-		flex-basis: 100%;
 		min-height: 0;
 		width: 100%;
 	}
@@ -245,21 +244,21 @@
 	}
 
 	.zpb-dropin-card__media {
-		height: 150px;
+		height: 118px;
 	}
 
 	.zpb-dropin-card__body {
-		padding: 42px 28px 32px;
+		padding: 32px 24px 28px;
 	}
 
 	.zpb-dropin-card__price {
-		font-size: 74px;
+		font-size: 56px;
 	}
 
 	.zpb-dropin-card__usage,
 	.zpb-dropin-card__validity,
 	.zpb-dropin-card__note,
 	.zpb-dropin-card__button {
-		font-size: 19px;
+		font-size: 16px;
 	}
 }
