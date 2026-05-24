@@ -56,7 +56,6 @@
 	display: flex;
 	flex: 0 0 370px;
 	flex-direction: column;
-	height: 415px;
 	min-height: 415px;
 	max-width: 100%;
 	overflow: hidden;
