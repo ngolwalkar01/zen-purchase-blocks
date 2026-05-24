@@ -40,12 +40,12 @@
 }
 
 .zpb-dropins__grid {
-	display: grid;
+	display: flex;
+	flex-wrap: wrap;
 	gap: 48px;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
 	justify-content: center;
 	margin: 0 auto;
-	max-width: 1120px;
+	max-width: 788px;
 }
 
 .zpb-dropin-card {
@@ -54,12 +54,13 @@
 	border-radius: 32px;
 	color: var(--zpb-dark);
 	display: flex;
+	flex: 0 0 370px;
 	flex-direction: column;
-	min-height: 640px;
-	min-width: 0;
+	height: 415px;
+	min-height: 415px;
 	max-width: 100%;
 	overflow: hidden;
-	width: 100%;
+	width: 370px;
 }
 
 .zpb-dropin-card__media {
@@ -230,6 +231,8 @@
 
 	.zpb-dropin-card {
 		border-radius: 28px;
+		flex-basis: 100%;
+		height: auto;
 		min-height: 0;
 		width: 100%;
 	}

@@ -41,12 +41,12 @@
 }
 
 .zpb-packages__grid {
-	display: grid;
+	display: flex;
+	flex-wrap: wrap;
 	gap: 48px;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	justify-content: center;
+	justify-content: flex-start;
 	margin: 0 auto;
-	max-width: 1210px;
+	max-width: 1206px;
 }
 
 .zpb-package-card {
@@ -54,12 +54,13 @@
 	border-radius: 32px;
 	color: var(--zpb-text);
 	display: flex;
+	flex: 0 0 370px;
 	flex-direction: column;
-	min-height: 520px;
-	min-width: 0;
+	height: 415px;
+	min-height: 415px;
 	max-width: 100%;
 	overflow: hidden;
-	width: 100%;
+	width: 370px;
 }
 
 .zpb-package-card__header {
@@ -207,6 +208,8 @@
 
 	.zpb-package-card {
 		border-radius: 28px;
+		flex-basis: 100%;
+		height: auto;
 		min-height: 0;
 		width: 100%;
 	}

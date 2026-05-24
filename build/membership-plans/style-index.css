@@ -70,9 +70,9 @@
 
 .zpb-membership-plans__grid {
 	align-items: stretch;
-	display: grid;
+	display: flex;
+	flex-wrap: wrap;
 	gap: 48px;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
 	justify-content: center;
 	margin: 0 auto;
 	max-width: 1120px;
@@ -84,12 +84,14 @@
 	border-radius: 32px;
 	color: var(--zpb-dark);
 	display: flex;
+	flex: 0 0 370px;
 	flex-direction: column;
-	min-height: 690px;
-	min-width: 0;
+	height: 631px;
+	max-width: 100%;
+	min-height: 631px;
 	overflow: visible;
 	position: relative;
-	width: 100%;
+	width: 370px;
 }
 
 .zpb-membership-card.is-featured {
@@ -346,7 +348,10 @@
 
 	.zpb-membership-card {
 		border-radius: 24px;
+		flex-basis: 100%;
+		height: auto;
 		min-height: 0;
+		width: 100%;
 	}
 
 	.zpb-membership-card__header {
