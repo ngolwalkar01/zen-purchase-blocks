@@ -457,7 +457,7 @@ final class ZPB_Zen_Purchase_Blocks {
 		$cart_product = $parent_id ? $parent : $product;
 		$name         = $parent ? $parent->get_name() . ' - ' . wc_get_formatted_variation( $product, true, false, true ) : $product->get_name();
 		$coins        = self::get_product_zencoin_grant( $product_id, $parent_id );
-		$is_limited   = self::is_subscription_limited_for_current_user( $product );
+		$is_limited   = self::is_membership_purchase_limited_for_current_user( $product );
 
 		return array(
 			'key'              => self::make_item_key( $parent_id ? $parent_id : $product_id, $parent_id ? $product_id : 0 ),
@@ -480,17 +480,17 @@ final class ZPB_Zen_Purchase_Blocks {
 	}
 
 	/**
-	 * Check whether Woo Subscriptions blocks this product for the current user.
+	 * Check whether an active member should be blocked from buying another membership.
 	 *
 	 * @param WC_Product $product Product.
 	 * @return bool
 	 */
-	private static function is_subscription_limited_for_current_user( WC_Product $product ) {
+	private static function is_membership_purchase_limited_for_current_user( WC_Product $product ) {
 		if (
 			! is_user_logged_in()
 			|| ! class_exists( 'WC_Subscriptions_Product' )
 			|| ! function_exists( 'wcs_get_product_limitation' )
-			|| ! function_exists( 'wcs_is_product_limited_for_user' )
+			|| ! function_exists( 'wc_memberships_get_user_active_memberships' )
 			|| ! WC_Subscriptions_Product::is_subscription( $product )
 		) {
 			return false;
@@ -500,7 +500,7 @@ final class ZPB_Zen_Purchase_Blocks {
 			return false;
 		}
 
-		return (bool) wcs_is_product_limited_for_user( $product, get_current_user_id() );
+		return ! empty( wc_memberships_get_user_active_memberships( get_current_user_id() ) );
 	}
 
 	/**
