@@ -457,6 +457,7 @@ final class ZPB_Zen_Purchase_Blocks {
 		$cart_product = $parent_id ? $parent : $product;
 		$name         = $parent ? $parent->get_name() . ' - ' . wc_get_formatted_variation( $product, true, false, true ) : $product->get_name();
 		$coins        = self::get_product_zencoin_grant( $product_id, $parent_id );
+		$is_limited   = self::is_subscription_limited_for_current_user( $product );
 
 		return array(
 			'key'              => self::make_item_key( $parent_id ? $parent_id : $product_id, $parent_id ? $product_id : 0 ),
@@ -471,10 +472,35 @@ final class ZPB_Zen_Purchase_Blocks {
 			'zencoins'         => $coins,
 			'zencoinValueText' => $coins > 0 ? wc_format_decimal( $coins, 0 ) : '',
 			'perZencoinText'   => self::get_price_per_zencoin_text( $product, $coins ),
-			'purchasable'      => $product->is_purchasable() && $product->is_in_stock() && $cart_product->is_purchasable(),
+			'purchasable'      => ! $is_limited && $product->is_purchasable() && $product->is_in_stock() && $cart_product->is_purchasable(),
+			'purchaseDisabled' => $is_limited,
 			'addToCartUrl'     => self::get_product_add_to_cart_url( $product, $parent ),
 			'permalink'        => $product->get_permalink(),
 		);
+	}
+
+	/**
+	 * Check whether Woo Subscriptions blocks this product for the current user.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return bool
+	 */
+	private static function is_subscription_limited_for_current_user( WC_Product $product ) {
+		if (
+			! is_user_logged_in()
+			|| ! class_exists( 'WC_Subscriptions_Product' )
+			|| ! function_exists( 'wcs_get_product_limitation' )
+			|| ! function_exists( 'wcs_is_product_limited_for_user' )
+			|| ! WC_Subscriptions_Product::is_subscription( $product )
+		) {
+			return false;
+		}
+
+		if ( 'active' !== wcs_get_product_limitation( $product ) ) {
+			return false;
+		}
+
+		return (bool) wcs_is_product_limited_for_user( $product, get_current_user_id() );
 	}
 
 	/**
@@ -849,9 +875,15 @@ final class ZPB_Zen_Purchase_Blocks {
 					</ul>
 				<?php endif; ?>
 
-				<a class="zpb-membership-card__button" href="<?php echo esc_url( ! empty( $item['purchasable'] ) ? $item['addToCartUrl'] : $item['permalink'] ); ?>">
-					<?php echo esc_html( $labels['button'] ); ?>
-				</a>
+				<?php if ( ! empty( $item['purchaseDisabled'] ) ) : ?>
+					<span class="zpb-membership-card__button is-disabled" aria-disabled="true">
+						<?php echo esc_html( $labels['button'] ); ?>
+					</span>
+				<?php else : ?>
+					<a class="zpb-membership-card__button" href="<?php echo esc_url( ! empty( $item['purchasable'] ) ? $item['addToCartUrl'] : $item['permalink'] ); ?>">
+						<?php echo esc_html( $labels['button'] ); ?>
+					</a>
+				<?php endif; ?>
 
 				<?php if ( ! empty( $item['moreInfo'] ) ) : ?>
 					<details class="zpb-membership-card__more">

@@ -299,6 +299,17 @@
 	text-decoration: none;
 }
 
+.zpb-membership-card__button.is-disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+	pointer-events: none;
+}
+
+.zpb-membership-card__button.is-disabled:hover,
+.zpb-membership-card__button.is-disabled:focus {
+	color: var(--zpb-gold);
+}
+
 .zpb-membership-card__more {
 	border-top: 3px solid var(--zpb-dark);
 	padding-top: 26px;
