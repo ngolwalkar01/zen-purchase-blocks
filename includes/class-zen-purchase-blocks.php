@@ -468,7 +468,8 @@ final class ZPB_Zen_Purchase_Blocks {
 			'priceText'        => self::get_display_price_text( $product ),
 			'monthlyEquivalentHtml' => self::get_monthly_equivalent_price_html( $product ),
 			'monthlyEquivalentText' => self::get_monthly_equivalent_price_text( $product ),
-			'billingPeriod'    => self::get_subscription_period_label( $product ),
+			'billingPeriod'      => self::get_subscription_period_label( $product ),
+			'subscriptionPeriod' => self::get_subscription_period( $product ),
 			'zencoins'         => $coins,
 			'zencoinValueText' => $coins > 0 ? wc_format_decimal( $coins, 0 ) : '',
 			'perZencoinText'   => self::get_price_per_zencoin_text( $product, $coins ),
@@ -556,7 +557,7 @@ final class ZPB_Zen_Purchase_Blocks {
 			return '';
 		}
 
-		$period   = WC_Subscriptions_Product::get_period( $product );
+		$period   = self::get_subscription_period( $product );
 		$interval = (int) WC_Subscriptions_Product::get_interval( $product );
 		$periods  = function_exists( 'wcs_get_subscription_period_strings' ) ? wcs_get_subscription_period_strings() : array();
 		$label    = isset( $periods[ $period ] ) ? $periods[ $period ] : $period;
@@ -566,6 +567,20 @@ final class ZPB_Zen_Purchase_Blocks {
 		}
 
 		return $label ? '/' . $label : '';
+	}
+
+	/**
+	 * Get the raw WooCommerce Subscriptions billing period.
+	 *
+	 * @param WC_Product $product Product.
+	 * @return string
+	 */
+	private static function get_subscription_period( WC_Product $product ) {
+		if ( ! class_exists( 'WC_Subscriptions_Product' ) || ! WC_Subscriptions_Product::is_subscription( $product ) ) {
+			return '';
+		}
+
+		return (string) WC_Subscriptions_Product::get_period( $product );
 	}
 
 	/**
@@ -817,7 +832,7 @@ final class ZPB_Zen_Purchase_Blocks {
 		if ( 'yearly' === $item['billingGroup'] ) {
 			if ( ! empty( $item['monthlyPriceOverride'] ) ) {
 				$price_html = esc_html( $item['monthlyPriceOverride'] );
-			} elseif ( ! empty( $item['monthlyEquivalentHtml'] ) ) {
+			} elseif ( 'year' === $item['subscriptionPeriod'] && ! empty( $item['monthlyEquivalentHtml'] ) ) {
 				$price_html = $item['monthlyEquivalentHtml'];
 			}
 

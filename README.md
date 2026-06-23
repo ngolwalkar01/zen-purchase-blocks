@@ -9,7 +9,7 @@ Dynamic Gutenberg blocks for Zenctuary purchase offers.
 - Lists products and variations assigned to the selected plans.
 - Lets the editor choose which items to show and tag each as monthly or yearly.
 - Renders monthly/yearly tabs only when selected products exist for that billing group.
-- Shows yearly products as a monthly equivalent price by default, with a per-card override.
+- Shows yearly-tab products with monthly pricing; annual-billed products are converted to a monthly equivalent, with a per-card override.
 - Formats card prices without subscription period text and hides trailing zero decimals.
 - Pulls price, billing period, Zencoin grant amount, and add-to-cart URL from WooCommerce at render time.
 
