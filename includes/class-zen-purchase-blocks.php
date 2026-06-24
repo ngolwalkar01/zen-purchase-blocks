@@ -422,7 +422,8 @@ final class ZPB_Zen_Purchase_Blocks {
 		$option = self::format_product_option( $product );
 
 		$option['packageSize']  = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_package_size', true );
-		$option['validityDays'] = absint( get_post_meta( $product->get_id(), '_cbb_zencoin_validity_days', true ) );
+		$option['productType']  = 'package';
+		$option['validityDays'] = self::get_effective_zencoin_validity_days( $product->get_id(), 'package', $option['packageSize'] );
 
 		return $option;
 	}
@@ -437,11 +438,57 @@ final class ZPB_Zen_Purchase_Blocks {
 		$option = self::format_product_option( $product );
 
 		$option['productType']  = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_product_type', true );
-		$option['validityDays'] = absint( get_post_meta( $product->get_id(), '_cbb_zencoin_validity_days', true ) );
+		$option['validityDays'] = self::get_effective_zencoin_validity_days( $product->get_id(), $option['productType'] );
 		$option['imageUrl']     = get_the_post_thumbnail_url( $product->get_id(), 'large' );
 		$option['isFree']       = (float) wc_get_price_to_display( $product ) <= 0;
 
 		return $option;
+	}
+
+	/**
+	 * Get the validity days a CBB grant will use for package/drop-in products.
+	 *
+	 * @param int    $product_id   Product ID.
+	 * @param string $product_type Product type.
+	 * @param string $package_size Package size.
+	 * @return int
+	 */
+	private static function get_effective_zencoin_validity_days( $product_id, $product_type, $package_size = '' ) {
+		$override = get_post_meta( $product_id, '_cbb_zencoin_validity_days', true );
+
+		if ( '' !== $override ) {
+			return absint( $override );
+		}
+
+		$saved_settings = get_option( 'cbb_zencoin_settings', array() );
+		$settings       = wp_parse_args(
+			is_array( $saved_settings ) ? $saved_settings : array(),
+			array(
+				'free_dropin_validity_days'    => '30',
+				'dropin_validity_days'         => '90',
+				'package_small_validity_days'  => '90',
+				'package_medium_validity_days' => '90',
+				'package_large_validity_days'  => '180',
+			)
+		);
+
+		if ( 'drop_in' === $product_type ) {
+			return absint( $settings['dropin_validity_days'] );
+		}
+
+		if ( 'free_drop_in' === $product_type ) {
+			return absint( $settings['free_dropin_validity_days'] );
+		}
+
+		if ( 'large' === $package_size ) {
+			return absint( $settings['package_large_validity_days'] );
+		}
+
+		if ( 'medium' === $package_size ) {
+			return absint( $settings['package_medium_validity_days'] );
+		}
+
+		return absint( $settings['package_small_validity_days'] );
 	}
 
 	/**
