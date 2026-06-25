@@ -218,7 +218,7 @@
 									el( TextareaControl, {
 										label: __( 'Validity text override', 'zen-purchase-blocks' ),
 										value: item.validityText || '',
-										placeholder: product.validityDays ? __( 'Leave empty to use product validity days.', 'zen-purchase-blocks' ) : labels.validityText,
+										placeholder: product.validityDays ? __( 'Leave empty to use product validity months.', 'zen-purchase-blocks' ) : labels.validityText,
 										onChange: function ( value ) {
 											updateItem( product.productId, { validityText: value } );
 										}

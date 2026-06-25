@@ -421,9 +421,10 @@ final class ZPB_Zen_Purchase_Blocks {
 	private static function format_package_option( WC_Product $product ) {
 		$option = self::format_product_option( $product );
 
-		$option['packageSize']  = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_package_size', true );
-		$option['productType']  = 'package';
-		$option['validityDays'] = self::get_effective_zencoin_validity_days( $product->get_id(), 'package', $option['packageSize'] );
+		$option['packageSize']    = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_package_size', true );
+		$option['productType']     = 'package';
+		$option['validityMonths'] = self::get_effective_zencoin_validity_months( $product->get_id(), 'package', $option['packageSize'] );
+		$option['validityDays']   = $option['validityMonths'];
 
 		return $option;
 	}
@@ -437,58 +438,109 @@ final class ZPB_Zen_Purchase_Blocks {
 	private static function format_drop_in_option( WC_Product $product ) {
 		$option = self::format_product_option( $product );
 
-		$option['productType']  = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_product_type', true );
-		$option['validityDays'] = self::get_effective_zencoin_validity_days( $product->get_id(), $option['productType'] );
-		$option['imageUrl']     = get_the_post_thumbnail_url( $product->get_id(), 'large' );
-		$option['isFree']       = (float) wc_get_price_to_display( $product ) <= 0;
+		$option['productType']     = (string) get_post_meta( $product->get_id(), '_cbb_zencoin_product_type', true );
+		$option['validityMonths'] = self::get_effective_zencoin_validity_months( $product->get_id(), $option['productType'] );
+		$option['validityDays']   = $option['validityMonths'];
+		$option['imageUrl']       = get_the_post_thumbnail_url( $product->get_id(), 'large' );
+		$option['isFree']         = (float) wc_get_price_to_display( $product ) <= 0;
 
 		return $option;
 	}
 
 	/**
-	 * Get the validity days a CBB grant will use for package/drop-in products.
+	 * Get the validity months a CBB grant will use for package/drop-in products.
 	 *
 	 * @param int    $product_id   Product ID.
 	 * @param string $product_type Product type.
 	 * @param string $package_size Package size.
 	 * @return int
 	 */
-	private static function get_effective_zencoin_validity_days( $product_id, $product_type, $package_size = '' ) {
-		$override = get_post_meta( $product_id, '_cbb_zencoin_validity_days', true );
+	private static function get_effective_zencoin_validity_months( $product_id, $product_type, $package_size = '' ) {
+		$override = get_post_meta( $product_id, '_cbb_zencoin_validity_months', true );
 
 		if ( '' !== $override ) {
 			return absint( $override );
 		}
 
+		$legacy_days = get_post_meta( $product_id, '_cbb_zencoin_validity_days', true );
+
+		if ( '' !== $legacy_days ) {
+			return self::convert_legacy_validity_days_to_months( $legacy_days );
+		}
+
 		$saved_settings = get_option( 'cbb_zencoin_settings', array() );
-		$settings       = wp_parse_args(
-			is_array( $saved_settings ) ? $saved_settings : array(),
-			array(
-				'free_dropin_validity_days'    => '30',
-				'dropin_validity_days'         => '90',
-				'package_small_validity_days'  => '90',
-				'package_medium_validity_days' => '90',
-				'package_large_validity_days'  => '180',
+		$settings       = self::migrate_legacy_validity_day_settings(
+			wp_parse_args(
+				is_array( $saved_settings ) ? $saved_settings : array(),
+				array(
+					'free_dropin_validity_months'    => '1',
+					'dropin_validity_months'         => '3',
+					'package_small_validity_months'  => '3',
+					'package_medium_validity_months' => '3',
+					'package_large_validity_months'  => '6',
+				)
 			)
 		);
 
 		if ( 'drop_in' === $product_type ) {
-			return absint( $settings['dropin_validity_days'] );
+			return absint( $settings['dropin_validity_months'] );
 		}
 
 		if ( 'free_drop_in' === $product_type ) {
-			return absint( $settings['free_dropin_validity_days'] );
+			return absint( $settings['free_dropin_validity_months'] );
 		}
 
 		if ( 'large' === $package_size ) {
-			return absint( $settings['package_large_validity_days'] );
+			return absint( $settings['package_large_validity_months'] );
 		}
 
 		if ( 'medium' === $package_size ) {
-			return absint( $settings['package_medium_validity_days'] );
+			return absint( $settings['package_medium_validity_months'] );
 		}
 
-		return absint( $settings['package_small_validity_days'] );
+		return absint( $settings['package_small_validity_months'] );
+	}
+
+	/**
+	 * Convert old fixed-day validity values to calendar-month settings.
+	 *
+	 * @param mixed $days Legacy day count.
+	 * @return int
+	 */
+	private static function convert_legacy_validity_days_to_months( $days ) {
+		$days = absint( $days );
+
+		if ( $days <= 0 ) {
+			return 0;
+		}
+
+		return max( 1, (int) round( $days / 30 ) );
+	}
+
+	/**
+	 * Convert legacy day-based option values to month settings when needed.
+	 *
+	 * @param array $settings Saved settings.
+	 * @return array
+	 */
+	private static function migrate_legacy_validity_day_settings( array $settings ) {
+		$legacy_map = array(
+			'free_dropin_validity_months'    => 'free_dropin_validity_days',
+			'dropin_validity_months'         => 'dropin_validity_days',
+			'package_small_validity_months'  => 'package_small_validity_days',
+			'package_medium_validity_months' => 'package_medium_validity_days',
+			'package_large_validity_months'  => 'package_large_validity_days',
+		);
+
+		foreach ( $legacy_map as $month_key => $day_key ) {
+			if ( array_key_exists( $month_key, $settings ) || ! array_key_exists( $day_key, $settings ) ) {
+				continue;
+			}
+
+			$settings[ $month_key ] = self::convert_legacy_validity_days_to_months( $settings[ $day_key ] );
+		}
+
+		return $settings;
 	}
 
 	/**
@@ -1193,8 +1245,10 @@ final class ZPB_Zen_Purchase_Blocks {
 	 * @return string
 	 */
 	private static function get_package_validity_text( array $item, array $labels ) {
-		if ( ! empty( $item['validityDays'] ) ) {
-			$months = (int) round( (int) $item['validityDays'] / 30 );
+		$validity_months = ! empty( $item['validityMonths'] ) ? absint( $item['validityMonths'] ) : absint( isset( $item['validityDays'] ) ? $item['validityDays'] : 0 );
+
+		if ( $validity_months ) {
+			$months = $validity_months;
 
 			if ( $months > 0 ) {
 				return sprintf(
@@ -1409,8 +1463,10 @@ final class ZPB_Zen_Purchase_Blocks {
 	 * @return string
 	 */
 	private static function get_drop_in_validity_text( array $item, array $labels ) {
-		if ( ! empty( $item['validityDays'] ) ) {
-			$months = (int) round( (int) $item['validityDays'] / 30 );
+		$validity_months = ! empty( $item['validityMonths'] ) ? absint( $item['validityMonths'] ) : absint( isset( $item['validityDays'] ) ? $item['validityDays'] : 0 );
+
+		if ( $validity_months ) {
+			$months = $validity_months;
 
 			if ( $months > 0 ) {
 				return sprintf(
